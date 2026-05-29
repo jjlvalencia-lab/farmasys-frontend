@@ -1,0 +1,77 @@
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+
+@Component({
+  selector: 'app-productos',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  templateUrl: './productos.html',
+  styleUrls: ['./productos.css']
+})
+export class ProductosComponent implements OnInit {
+  productos: any[] = [];
+  mostrarFormulario = false;
+  editando = false;
+  productoActual: any = this.nuevoProducto();
+
+  constructor(private http: HttpClient, private router: Router, private cdr: ChangeDetectorRef) {}
+
+  nuevoProducto() {
+    return { nombre: '', precio: 0, lote: '', fechaCaducidad: '', stock: 0, imagen: '' };
+  }
+
+  ngOnInit() { this.cargarProductos(); }
+
+  cargarProductos() {
+    const token = localStorage.getItem('token');
+    const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+    this.http.get<any[]>('http://localhost:3000/productos', { headers }).subscribe({
+      next: (data) => {
+        this.productos = [...data];
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error('Error:', err)
+    });
+  }
+
+  abrirFormulario() {
+    this.productoActual = this.nuevoProducto();
+    this.editando = false;
+    this.mostrarFormulario = true;
+  }
+
+  editar(producto: any) {
+    this.productoActual = { ...producto };
+    this.editando = true;
+    this.mostrarFormulario = true;
+  }
+
+  guardar() {
+    const token = localStorage.getItem('token');
+    const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+    if (this.editando) {
+      this.http.put(`http://localhost:3000/productos/${this.productoActual.id}`, this.productoActual, { headers }).subscribe(() => {
+        this.cargarProductos();
+        this.mostrarFormulario = false;
+      });
+    } else {
+      this.http.post('http://localhost:3000/productos', this.productoActual, { headers }).subscribe(() => {
+        this.cargarProductos();
+        this.mostrarFormulario = false;
+      });
+    }
+  }
+
+  eliminar(id: number) {
+    if (confirm('¿Estás seguro de eliminar este producto?')) {
+      const token = localStorage.getItem('token');
+      const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+      this.http.delete(`http://localhost:3000/productos/${id}`, { headers }).subscribe(() => this.cargarProductos());
+    }
+  }
+
+  volver() { this.router.navigate(['/dashboard']); }
+}

@@ -1,0 +1,33 @@
+.productos-page { min-height: 100vh; background: #f5f5f5; }
+.navbar {
+  background: linear-gradient(135deg, #2a9d8f, #264653);
+  color: white;
+  padding: 15px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.nav-brand { font-size: 1.5rem; font-weight: bold; }
+.btn-back { background: rgba(255,255,255,0.2); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
+.content { padding: 30px; }
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.btn-add { background: #2a9d8f; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 1rem; }
+table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+th { background: #264653; color: white; padding: 12px; text-align: left; }
+td { padding: 12px; border-bottom: 1px solid #eee; }
+tr:hover { background: #f9f9f9; }
+td.low { color: red; font-weight: bold; }
+.btn-edit { background: #f4a261; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; margin-right: 5px; }
+.btn-delete { background: #e63946; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; }
+.modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+.modal-content { background: white; padding: 30px; border-radius: 12px; width: 100%; max-width: 500px; }
+.modal-content h2 { margin-bottom: 20px; color: #264653; }
+.form-group { margin-bottom: 15px; }
+.form-group label { display: block; margin-bottom: 5px; color: #264653; font-weight: 500; }
+.form-row { display: flex; gap: 15px; }
+.form-row .form-group { flex: 1; }
+.input-field { width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem; box-sizing: border-box; }
+.input-field:focus { border-color: #2a9d8f; outline: none; }
+.modal-buttons { display: flex; gap: 10px; margin-top: 20px; }
+.btn-save { flex: 1; padding: 12px; background: #2a9d8f; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; }
+.btn-cancel { flex: 1; padding: 12px; background: #ddd; color: #333; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; }

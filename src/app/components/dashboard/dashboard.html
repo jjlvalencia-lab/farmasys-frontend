@@ -1,0 +1,50 @@
+<div class="dashboard">
+  <nav class="navbar">
+    <div class="nav-brand">🏥 FarmaSys</div>
+    <div class="nav-links">
+      <button (click)="irProductos()" class="btn-nav">📦 Productos</button>
+      <button (click)="logout()" class="btn-logout">Cerrar Sesión</button>
+    </div>
+  </nav>
+  <div class="content">
+    <h1>Panel de Control</h1>
+    <div class="cards">
+      <div class="card">
+        <h3>Total Productos</h3>
+        <p class="number">{{ totalProductos }}</p>
+      </div>
+      <div class="card warning">
+        <h3>Stock Bajo</h3>
+        <p class="number">{{ stockBajo }}</p>
+      </div>
+      <div class="card danger">
+        <h3>Sobrestock</h3>
+        <p class="number">{{ sobrestock }}</p>
+      </div>
+    </div>
+    <div class="table-container">
+      <h2>Productos en Inventario</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Stock</th>
+            <th>Precio</th>
+            <th>Lote</th>
+            <th>Caducidad</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of productos">
+            <td>{{ p.nombre }}</td>
+            <td [class.low]="p.stock < 50">{{ p.stock }}</td>
+            <td>${{ p.precio }}</td>
+            <td>{{ p.lote }}</td>
+            <td>{{ p.fechaCaducidad }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <p *ngIf="productos.length === 0">No hay productos aún.</p>
+    </div>
+  </div>
+</div>

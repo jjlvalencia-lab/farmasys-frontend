@@ -1,0 +1,77 @@
+<div class="productos-page">
+  <nav class="navbar">
+    <div class="nav-brand">🏥 FarmaSys</div>
+    <button (click)="volver()" class="btn-back">← Volver</button>
+  </nav>
+  <div class="content">
+    <div class="header">
+      <h1>Gestión de Productos</h1>
+      <button (click)="abrirFormulario()" class="btn-add">+ Agregar Producto</button>
+    </div>
+
+    <div class="modal" *ngIf="mostrarFormulario">
+      <div class="modal-content">
+        <h2>{{ editando ? 'Editar Producto' : 'Nuevo Producto' }}</h2>
+        <div class="form-group">
+          <label>Nombre</label>
+          <input [(ngModel)]="productoActual.nombre" class="input-field" placeholder="Nombre del producto"/>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Precio</label>
+            <input type="number" [(ngModel)]="productoActual.precio" class="input-field" placeholder="0.00"/>
+          </div>
+          <div class="form-group">
+            <label>Stock</label>
+            <input type="number" [(ngModel)]="productoActual.stock" class="input-field" placeholder="0"/>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Lote</label>
+            <input [(ngModel)]="productoActual.lote" class="input-field" placeholder="LOT00123"/>
+          </div>
+          <div class="form-group">
+            <label>Fecha Caducidad</label>
+            <input type="date" [(ngModel)]="productoActual.fechaCaducidad" class="input-field"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Imagen (URL opcional)</label>
+          <input [(ngModel)]="productoActual.imagen" class="input-field" placeholder="https://..."/>
+        </div>
+        <div class="modal-buttons">
+          <button (click)="guardar()" class="btn-save">Guardar</button>
+          <button (click)="mostrarFormulario = false" class="btn-cancel">Cancelar</button>
+        </div>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Stock</th>
+          <th>Precio</th>
+          <th>Lote</th>
+          <th>Caducidad</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of productos">
+          <td>{{ p.nombre }}</td>
+          <td [class.low]="p.stock < 50">{{ p.stock }}</td>
+          <td>${{ p.precio }}</td>
+          <td>{{ p.lote }}</td>
+          <td>{{ p.fechaCaducidad }}</td>
+          <td>
+            <button (click)="editar(p)" class="btn-edit">✏️ Editar</button>
+            <button (click)="eliminar(p.id)" class="btn-delete">🗑️ Eliminar</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <p *ngIf="productos.length === 0">No hay productos aún.</p>
+  </div>
+</div>
