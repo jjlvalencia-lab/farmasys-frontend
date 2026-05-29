@@ -21,13 +21,35 @@
         <h3>Sobrestock</h3>
         <p class="number">{{ sobrestock }}</p>
       </div>
+      <div class="card alert">
+        <h3>Por Vencer</h3>
+        <p class="number">{{ alertasVencimiento.length }}</p>
+      </div>
     </div>
+
+    <div class="alertas-container" *ngIf="alertasVencimiento.length > 0">
+      <h2>⚠️ Alertas de Vencimiento</h2>
+      <div class="alertas-list">
+        <div class="alerta-item" *ngFor="let a of alertasVencimiento" [class]="'alerta-' + a.nivel">
+          <div class="alerta-info">
+            <strong>{{ a.nombre }}</strong>
+            <span>Lote: {{ a.lote }} | Categoría: {{ a.categoria }}</span>
+          </div>
+          <div class="alerta-dias">
+            <span class="dias-numero">{{ a.diasRestantes }}</span>
+            <span class="dias-texto">días</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="table-container">
       <h2>Productos en Inventario</h2>
       <table>
         <thead>
           <tr>
             <th>Nombre</th>
+            <th>Categoría</th>
             <th>Stock</th>
             <th>Precio</th>
             <th>Lote</th>
@@ -37,6 +59,7 @@
         <tbody>
           <tr *ngFor="let p of productos">
             <td>{{ p.nombre }}</td>
+            <td><span class="badge">{{ p.categoria }}</span></td>
             <td [class.low]="p.stock < 50">{{ p.stock }}</td>
             <td>${{ p.precio }}</td>
             <td>{{ p.lote }}</td>
