@@ -5,19 +5,25 @@
   </nav>
   <div class="content">
     <div class="header">
-      <h1>{{ esAdmin ? 'Gestión de Productos' : 'Inventario de Productos' }}</h1>
+      <h1>{{ esAdmin ? 'Gestion de Productos' : 'Inventario de Productos' }}</h1>
       <div class="header-actions">
         <input
           type="text"
           [(ngModel)]="textoBusqueda"
           (ngModelChange)="buscar()"
-          placeholder="🔍 Buscar por nombre, lote o fecha..."
+          placeholder="Buscar por nombre, lote o fecha..."
           class="input-busqueda"
         />
         <select [(ngModel)]="categoriaSeleccionada" (ngModelChange)="filtrar()" class="select-categoria">
           <option *ngFor="let cat of categorias" [value]="cat">{{ cat }}</option>
         </select>
-        <button *ngIf="esAdmin" (click)="abrirFormulario()" class="btn-add">+ Agregar Producto</button>
+        <button *ngIf="esAdmin" (click)="exportarExcel()" class="btn-excel">📊 Excel</button>
+        <button *ngIf="esAdmin" (click)="exportarPDF()" class="btn-pdf">📄 PDF</button>
+        <label *ngIf="esAdmin" class="btn-importar">
+          📥 Importar
+          <input type="file" accept=".xlsx,.xls" (change)="importarExcel($event)" style="display:none"/>
+        </label>
+        <button *ngIf="esAdmin" (click)="abrirFormulario()" class="btn-add">+ Agregar</button>
       </div>
     </div>
 
@@ -49,18 +55,21 @@
           </div>
         </div>
         <div class="form-group">
-          <label>Categoría</label>
+          <label>Categoria</label>
           <select [(ngModel)]="productoActual.categoria" class="input-field">
             <option *ngFor="let cat of categorias.slice(1)" [value]="cat">{{ cat }}</option>
           </select>
         </div>
         <div class="form-group">
-          <label>Imagen (URL opcional)</label>
-          <input [(ngModel)]="productoActual.imagen" class="input-field" placeholder="https://..."/>
+          <label>Imagen del Producto</label>
+          <input type="file" accept="image/*" (change)="onImagenSeleccionada($event)" class="input-file"/>
+          <div class="imagen-preview" *ngIf="imagenPreview">
+            <img [src]="imagenPreview" alt="Vista previa" class="preview-img"/>
+          </div>
         </div>
         <div class="modal-buttons">
           <button (click)="guardar()" class="btn-save">Guardar</button>
-          <button (click)="mostrarFormulario = false" class="btn-cancel">Cancelar</button>
+          <button (click)="mostrarFormulario = false; imagenPreview = ''" class="btn-cancel">Cancelar</button>
         </div>
       </div>
     </div>
@@ -68,8 +77,9 @@
     <table>
       <thead>
         <tr>
+          <th>Imagen</th>
           <th>Nombre</th>
-          <th>Categoría</th>
+          <th>Categoria</th>
           <th>Stock</th>
           <th>Precio</th>
           <th>Lote</th>
@@ -79,6 +89,10 @@
       </thead>
       <tbody>
         <tr *ngFor="let p of productosFiltrados">
+          <td>
+            <img *ngIf="p.imagen" [src]="p.imagen" alt="{{ p.nombre }}" class="tabla-imagen"/>
+            <span *ngIf="!p.imagen" class="sin-imagen">📦</span>
+          </td>
           <td>{{ p.nombre }}</td>
           <td><span class="badge">{{ p.categoria }}</span></td>
           <td [class.low]="p.stock < 50">{{ p.stock }}</td>
@@ -92,7 +106,6 @@
         </tr>
       </tbody>
     </table>
-
     <p *ngIf="productosFiltrados.length === 0" class="no-resultados">
       No se encontraron productos.
     </p>

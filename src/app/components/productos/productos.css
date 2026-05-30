@@ -77,3 +77,39 @@ td.low { color: red; font-weight: bold; }
   .navbar { padding: 12px 15px; }
   .nav-brand { font-size: 1.2rem; }
 }
+
+.tabla-imagen {
+  width: 45px;
+  height: 45px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #eee;
+}
+.sin-imagen {
+  font-size: 1.5rem;
+}
+.input-file {
+  width: 100%;
+  padding: 8px;
+  border: 2px dashed #ddd;
+  border-radius: 10px;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+.imagen-preview {
+  margin-top: 10px;
+  text-align: center;
+}
+.preview-img {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 2px solid #2a9d8f;
+}
+.btn-excel { background: #1d6f42; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-size: 0.95rem; font-weight: 600; transition: all 0.3s; }
+.btn-excel:hover { opacity: 0.9; transform: translateY(-2px); }
+.btn-pdf { background: #c0392b; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-size: 0.95rem; font-weight: 600; transition: all 0.3s; }
+.btn-pdf:hover { opacity: 0.9; transform: translateY(-2px); }
+.btn-importar { background: #2563eb; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-size: 0.95rem; font-weight: 600; transition: all 0.3s; }
+.btn-importar:hover { opacity: 0.9; transform: translateY(-2px); }
