@@ -44,6 +44,25 @@
       </div>
     </div>
 
+    <div class="graficas-container">
+  <div class="grafica-box">
+    <h2>📊 Top 10 Productos por Stock</h2>
+    <canvas baseChart
+      [data]="barChartData"
+      [options]="barChartOptions"
+      type="bar">
+    </canvas>
+  </div>
+  <div class="grafica-box">
+    <h2>🥧 Distribución por Categoría</h2>
+    <canvas baseChart
+      [data]="pieChartData"
+      [options]="pieChartOptions"
+      type="pie">
+    </canvas>
+  </div>
+</div>
+    
     <div class="table-container">
       <h2>Productos en Inventario</h2>
       <table>

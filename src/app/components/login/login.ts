@@ -9,12 +9,14 @@ import { AuthService } from '../../services/auth.service';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './login.html',
-styleUrls: ['./login.css']
+  styleUrls: ['./login.css']
 })
 export class LoginComponent {
   username = '';
   password = '';
   error = '';
+  mostrarPassword = false;
+  shake = false;
 
   constructor(private authService: AuthService, private router: Router) {}
 
@@ -28,7 +30,13 @@ export class LoginComponent {
       },
       error: () => {
         this.error = 'Usuario o contraseña incorrectos';
+        this.shake = true;
+        setTimeout(() => this.shake = false, 600);
       }
     });
+  }
+
+  togglePassword() {
+    this.mostrarPassword = !this.mostrarPassword;
   }
 }

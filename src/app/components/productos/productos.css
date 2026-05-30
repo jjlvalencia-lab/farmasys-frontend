@@ -64,3 +64,16 @@ td.low { color: red; font-weight: bold; }
 .btn-cancel { flex: 1; padding: 12px; background: #ddd; color: #333; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; }
 .btn-importar { background: #2563eb; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-size: 1rem; }
 .no-resultados { text-align: center; color: #666; margin-top: 20px; font-size: 1.1rem; }
+
+@media (max-width: 768px) {
+  .content { padding: 15px; }
+  .cards { flex-direction: column; }
+  .graficas-container { flex-direction: column; }
+  .header { flex-direction: column; align-items: flex-start; }
+  .header-actions { width: 100%; flex-direction: column; }
+  .input-busqueda { width: 100%; }
+  table { font-size: 0.8rem; }
+  th, td { padding: 8px 6px; }
+  .navbar { padding: 12px 15px; }
+  .nav-brand { font-size: 1.2rem; }
+}
