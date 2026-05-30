@@ -139,5 +139,40 @@ exportarPDF() {
     });
   });
 }
+importarExcel(event: any) {
+  const archivo = event.target.files[0];
+  if (!archivo) return;
+  import('xlsx').then(XLSX => {
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      const data = new Uint8Array(e.target.result);
+      const libro = XLSX.read(data, { type: 'array' });
+      const hoja = libro.Sheets[libro.SheetNames[0]];
+      const filas: any[] = XLSX.utils.sheet_to_json(hoja);
+      const token = localStorage.getItem('token');
+      const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+      let guardados = 0;
+      filas.forEach(fila => {
+        const producto = {
+          nombre: fila['Nombre'] || '',
+          categoria: fila['Categoría'] || 'Otros',
+          stock: fila['Stock'] || 0,
+          precio: fila['Precio'] || 0,
+          lote: fila['Lote'] || '',
+          fechaCaducidad: fila['Fecha Caducidad'] || '',
+          imagen: ''
+        };
+        this.http.post('http://localhost:3000/productos', producto, { headers }).subscribe(() => {
+          guardados++;
+          if (guardados === filas.length) {
+            alert(`✅ ${guardados} productos importados correctamente!`);
+            this.cargarProductos();
+          }
+        });
+      });
+    };
+    reader.readAsArrayBuffer(archivo);
+  });
+}
 }
 

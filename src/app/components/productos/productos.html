@@ -7,6 +7,10 @@
     <div class="header">
       <h1>Gestión de Productos</h1>
       <div class="header-actions">
+        <label class="btn-importar">
+  📥 Importar Excel
+  <input type="file" accept=".xlsx,.xls" (change)="importarExcel($event)" style="display:none"/>
+</label>
         <input
           type="text"
           [(ngModel)]="textoBusqueda"
