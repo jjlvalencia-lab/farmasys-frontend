@@ -16,6 +16,7 @@ export class DashboardComponent implements OnInit {
   totalProductos = 0;
   stockBajo = 0;
   sobrestock = 0;
+  rol: string = '';
   alertasVencimiento: any[] = [];
 
   constructor(
@@ -26,20 +27,21 @@ export class DashboardComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    const token = localStorage.getItem('token');
-    const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
-    this.http.get<any[]>(`http://localhost:3000/productos?t=${Date.now()}`, { headers }).subscribe({
-      next: (data) => {
-        this.productos = [...data];
-        this.totalProductos = data.length;
-        this.stockBajo = data.filter(p => p.stock < 50).length;
-        this.sobrestock = data.filter(p => p.stock > 1000).length;
-        this.calcularAlertas(data);
-        this.cdr.detectChanges();
-      },
-      error: (err) => console.error('Error:', err)
-    });
-  }
+  this.rol = localStorage.getItem('rol') || 'admin';
+  const token = localStorage.getItem('token');
+  const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+  this.http.get<any[]>(`http://localhost:3000/productos?t=${Date.now()}`, { headers }).subscribe({
+    next: (data) => {
+      this.productos = [...data];
+      this.totalProductos = data.length;
+      this.stockBajo = data.filter(p => p.stock < 50).length;
+      this.sobrestock = data.filter(p => p.stock > 1000).length;
+      this.calcularAlertas(data);
+      this.cdr.detectChanges();
+    },
+    error: (err) => console.error('Error:', err)
+  });
+}
 
   calcularAlertas(productos: any[]) {
     const hoy = new Date();
@@ -63,4 +65,5 @@ export class DashboardComponent implements OnInit {
 
   irProductos() { this.router.navigate(['/productos']); }
   logout() { this.authService.logout(); }
+  irVentas() { this.router.navigate(['/ventas']); }
 }

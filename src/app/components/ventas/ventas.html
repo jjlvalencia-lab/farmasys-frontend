@@ -1,0 +1,156 @@
+<div class="ventas-page">
+  <nav class="navbar">
+    <div class="nav-brand">🏥 FarmaSys — Punto de Venta</div>
+    <div class="nav-links">
+      <button (click)="vistaActual = 'nueva'" [class.active]="vistaActual === 'nueva'" class="btn-nav">🛒 Nueva Venta</button>
+      <button (click)="vistaActual = 'historial'" [class.active]="vistaActual === 'historial'" class="btn-nav">📋 Historial</button>
+      <button (click)="volver()" class="btn-back">← Volver</button>
+    </div>
+  </nav>
+
+  <!-- NUEVA VENTA -->
+  <div class="content" *ngIf="vistaActual === 'nueva'">
+    <div class="pos-layout">
+
+      <!-- Panel izquierdo: productos -->
+      <div class="panel-productos">
+        <h2>📦 Productos</h2>
+        <input
+          type="text"
+          [(ngModel)]="busquedaProducto"
+          (ngModelChange)="buscarProducto()"
+          placeholder="🔍 Buscar producto..."
+          class="input-busqueda"
+        />
+        <div class="productos-grid">
+          <div class="producto-card" *ngFor="let p of productosFiltrados" (click)="agregarAlCarrito(p)">
+            <div class="producto-nombre">{{ p.nombre }}</div>
+            <div class="producto-categoria">{{ p.categoria }}</div>
+            <div class="producto-precio">${{ p.precio }}</div>
+            <div class="producto-stock" [class.low]="p.stock < 10">Stock: {{ p.stock }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel derecho: carrito -->
+      <div class="panel-carrito">
+        <h2>🛒 Carrito</h2>
+        <div class="carrito-vacio" *ngIf="carrito.length === 0">
+          <p>Clic en un producto para agregarlo</p>
+        </div>
+        <div class="carrito-items" *ngIf="carrito.length > 0">
+          <div class="carrito-item" *ngFor="let item of carrito">
+            <div class="item-info">
+              <span class="item-nombre">{{ item.nombreProducto }}</span>
+              <span class="item-precio">${{ item.precioUnitario }}</span>
+            </div>
+            <div class="item-controls">
+              <button (click)="cambiarCantidad(item, item.cantidad - 1)" class="btn-qty">-</button>
+              <span class="item-qty">{{ item.cantidad }}</span>
+              <button (click)="cambiarCantidad(item, item.cantidad + 1)" class="btn-qty">+</button>
+              <span class="item-subtotal">${{ item.subtotal.toFixed(2) }}</span>
+              <button (click)="eliminarDelCarrito(item)" class="btn-remove">🗑️</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="carrito-total" *ngIf="carrito.length > 0">
+          <div class="total-line">
+            <span>Total:</span>
+            <strong>${{ total.toFixed(2) }}</strong>
+          </div>
+        </div>
+
+        <div class="pago-section" *ngIf="carrito.length > 0">
+          <h3>💳 Método de Pago</h3>
+          <div class="metodos-pago">
+            <button
+              *ngFor="let m of metodosPago"
+              (click)="metodoPago = m.valor"
+              [class.selected]="metodoPago === m.valor"
+              class="btn-metodo"
+            >{{ m.etiqueta }}</button>
+          </div>
+          <div class="efectivo-section" *ngIf="metodoPago === 'efectivo'">
+            <label>Efectivo recibido:</label>
+            <input type="number" [(ngModel)]="efectivoRecibido" class="input-field" placeholder="0.00"/>
+            <div class="cambio" *ngIf="efectivoRecibido > 0">
+              Cambio: <strong>${{ cambio.toFixed(2) }}</strong>
+            </div>
+          </div>
+          <div class="referencia-section" *ngIf="metodoPago !== 'efectivo'">
+            <label>Referencia (opcional):</label>
+            <input type="text" [(ngModel)]="referencia" class="input-field" placeholder="Número de referencia"/>
+          </div>
+          <div class="form-group">
+            <label>Observación (opcional):</label>
+            <input type="text" [(ngModel)]="observacion" class="input-field" placeholder="Nota adicional"/>
+          </div>
+          <button (click)="procesarVenta()" class="btn-procesar">✅ Procesar Venta</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORIAL -->
+  <div class="content" *ngIf="vistaActual === 'historial'">
+    <h2>📋 Historial de Ventas</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Fecha</th>
+          <th>Total</th>
+          <th>Método de Pago</th>
+          <th>Productos</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let v of historialVentas">
+          <td>{{ v.id }}</td>
+          <td>{{ v.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
+          <td><strong>${{ v.total }}</strong></td>
+          <td>{{ v.metodoPago }}</td>
+          <td>{{ v.detalles?.length }} producto(s)</td>
+        </tr>
+      </tbody>
+    </table>
+    <p *ngIf="historialVentas.length === 0">No hay ventas registradas aún.</p>
+  </div>
+
+  <!-- RECIBO -->
+  <div class="recibo-overlay" [style.display]="mostrarRecibo">
+    <div class="recibo" *ngIf="ventaActual">
+      <div class="recibo-header">
+        <h2>🏥 FarmaSys</h2>
+        <p>Sistema de Gestión de Inventario</p>
+        <hr/>
+        <p>Recibo #{{ ventaActual.id }}</p>
+        <p>{{ ventaActual.fecha | date:'dd/MM/yyyy HH:mm' }}</p>
+      </div>
+      <div class="recibo-items">
+        <div class="recibo-item" *ngFor="let d of ventaActual.detalles">
+          <span>{{ d.nombreProducto }}</span>
+          <span>{{ d.cantidad }} x ${{ d.precioUnitario }} = ${{ d.subtotal }}</span>
+        </div>
+      </div>
+      <hr/>
+      <div class="recibo-total">
+        <strong>TOTAL: ${{ ventaActual.total }}</strong>
+      </div>
+      <div class="recibo-pago">
+        <p>Método: {{ ventaActual.metodoPagoEtiqueta }}</p>
+        <p *ngIf="ventaActual.metodoPago === 'efectivo'">Recibido: ${{ ventaActual.efectivoRecibido }}</p>
+        <p *ngIf="ventaActual.metodoPago === 'efectivo'">Cambio: ${{ ventaActual.cambio?.toFixed(2) }}</p>
+        <p *ngIf="ventaActual.referencia">Ref: {{ ventaActual.referencia }}</p>
+      </div>
+      <div class="recibo-footer">
+        <p>¡Gracias por su compra!</p>
+      </div>
+      <div class="recibo-buttons">
+        <button (click)="imprimirRecibo()" class="btn-imprimir">🖨️ Imprimir</button>
+        <button (click)="cerrarRecibo()" class="btn-cerrar">✖ Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
