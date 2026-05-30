@@ -9,6 +9,6 @@ export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
   { path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] },
-  { path: 'productos', component: ProductosComponent, canActivate: [adminGuard] },
+  { path: 'productos', component: ProductosComponent, canActivate: [authGuard] },
   { path: 'ventas', component: VentasComponent, canActivate: [authGuard] },
 ];

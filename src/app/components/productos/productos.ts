@@ -19,6 +19,7 @@ export class ProductosComponent implements OnInit {
   mostrarFormulario = false;
   editando = false;
   productoActual: any = this.nuevoProducto();
+  esAdmin: boolean = localStorage.getItem('rol') === 'admin';
 
   categorias = ['Todos', 'Analgésicos', 'Antibióticos', 'Vitaminas', 'Antiinflamatorios', 'Antihistamínicos', 'Otros'];
 
@@ -99,80 +100,4 @@ export class ProductosComponent implements OnInit {
   }
 
   volver() { this.router.navigate(['/dashboard']); }
-
-  exportarExcel() {
-  import('xlsx').then(XLSX => {
-    const datos = this.productosFiltrados.map(p => ({
-      'Nombre': p.nombre,
-      'Categoría': p.categoria,
-      'Stock': p.stock,
-      'Precio': p.precio,
-      'Lote': p.lote,
-      'Fecha Caducidad': p.fechaCaducidad
-    }));
-    const hoja = XLSX.utils.json_to_sheet(datos);
-    const libro = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(libro, hoja, 'Inventario');
-    XLSX.writeFile(libro, 'inventario-farmasys.xlsx');
-  });
 }
-
-exportarPDF() {
-  import('jspdf').then(({ jsPDF }) => {
-    import('jspdf-autotable').then(autoTableModule => {
-      const autoTable = autoTableModule.default;
-      const doc = new jsPDF();
-      doc.setFontSize(18);
-      doc.text('FarmaSys - Inventario de Productos', 14, 22);
-      doc.setFontSize(11);
-      doc.text(`Generado: ${new Date().toLocaleDateString()}`, 14, 32);
-      autoTable(doc, {
-        startY: 40,
-        head: [['Nombre', 'Categoría', 'Stock', 'Precio', 'Lote', 'Caducidad']],
-        body: this.productosFiltrados.map(p => [
-          p.nombre, p.categoria, p.stock, `$${p.precio}`, p.lote, p.fechaCaducidad
-        ]),
-        styles: { fontSize: 9 },
-        headStyles: { fillColor: [38, 70, 83] }
-      });
-      doc.save('inventario-farmasys.pdf');
-    });
-  });
-}
-importarExcel(event: any) {
-  const archivo = event.target.files[0];
-  if (!archivo) return;
-  import('xlsx').then(XLSX => {
-    const reader = new FileReader();
-    reader.onload = (e: any) => {
-      const data = new Uint8Array(e.target.result);
-      const libro = XLSX.read(data, { type: 'array' });
-      const hoja = libro.Sheets[libro.SheetNames[0]];
-      const filas: any[] = XLSX.utils.sheet_to_json(hoja);
-      const token = localStorage.getItem('token');
-      const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
-      let guardados = 0;
-      filas.forEach(fila => {
-        const producto = {
-          nombre: fila['Nombre'] || '',
-          categoria: fila['Categoría'] || 'Otros',
-          stock: fila['Stock'] || 0,
-          precio: fila['Precio'] || 0,
-          lote: fila['Lote'] || '',
-          fechaCaducidad: fila['Fecha Caducidad'] || '',
-          imagen: ''
-        };
-        this.http.post('http://localhost:3000/productos', producto, { headers }).subscribe(() => {
-          guardados++;
-          if (guardados === filas.length) {
-            alert(`✅ ${guardados} productos importados correctamente!`);
-            this.cargarProductos();
-          }
-        });
-      });
-    };
-    reader.readAsArrayBuffer(archivo);
-  });
-}
-}
-
