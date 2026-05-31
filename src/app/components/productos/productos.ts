@@ -27,7 +27,12 @@ export class ProductosComponent implements OnInit {
   constructor(private http: HttpClient, private router: Router, private cdr: ChangeDetectorRef) {}
 
   nuevoProducto() {
-    return { nombre: '', precio: 0, lote: '', fechaCaducidad: '', stock: 0, imagen: '', categoria: 'Otros' };
+    return {
+      nombre: '', precio: 0, precioCosto: 0, lote: '',
+      fechaElaboracion: '', fechaIngreso: new Date().toISOString().split('T')[0],
+      fechaCaducidad: '', stock: 0, stockMinimo: 10, stockMaximo: 1000,
+      imagen: '', categoria: 'Otros'
+    };
   }
 
   ngOnInit() { this.cargarProductos(); }
@@ -63,6 +68,12 @@ export class ProductosComponent implements OnInit {
   }
 
   buscar() { this.filtrar(); }
+
+  getStockClass(p: any): string {
+    if (p.stock <= p.stockMinimo) return 'stock-critico';
+    if (p.stock >= p.stockMaximo) return 'stock-sobre';
+    return '';
+  }
 
   abrirFormulario() {
     this.productoActual = this.nuevoProducto();
@@ -119,12 +130,11 @@ export class ProductosComponent implements OnInit {
   exportarExcel() {
     import('xlsx').then(XLSX => {
       const datos = this.productosFiltrados.map(p => ({
-        'Nombre': p.nombre,
-        'Categoria': p.categoria,
-        'Stock': p.stock,
-        'Precio': p.precio,
-        'Lote': p.lote,
-        'Fecha Caducidad': p.fechaCaducidad
+        'Nombre': p.nombre, 'Categoria': p.categoria,
+        'Stock': p.stock, 'Precio Venta': p.precio,
+        'Precio Costo': p.precioCosto, 'Lote': p.lote,
+        'F. Elaboracion': p.fechaElaboracion, 'F. Ingreso': p.fechaIngreso,
+        'F. Caducidad': p.fechaCaducidad
       }));
       const hoja = XLSX.utils.json_to_sheet(datos);
       const libro = XLSX.utils.book_new();
@@ -144,11 +154,11 @@ export class ProductosComponent implements OnInit {
         doc.text(`Generado: ${new Date().toLocaleDateString()}`, 14, 32);
         autoTable(doc, {
           startY: 40,
-          head: [['Nombre', 'Categoria', 'Stock', 'Precio', 'Lote', 'Caducidad']],
+          head: [['Nombre', 'Categoria', 'Stock', 'P.Venta', 'P.Costo', 'Lote', 'Caducidad']],
           body: this.productosFiltrados.map(p => [
-            p.nombre, p.categoria, p.stock, `$${p.precio}`, p.lote, p.fechaCaducidad
+            p.nombre, p.categoria, p.stock, `$${p.precio}`, `$${p.precioCosto}`, p.lote, p.fechaCaducidad
           ]),
-          styles: { fontSize: 9 },
+          styles: { fontSize: 8 },
           headStyles: { fillColor: [38, 70, 83] }
         });
         doc.save('inventario-farmasys.pdf');
@@ -171,12 +181,14 @@ export class ProductosComponent implements OnInit {
         let guardados = 0;
         filas.forEach(fila => {
           const producto = {
-            nombre: fila['Nombre'] || '',
-            categoria: fila['Categoria'] || 'Otros',
-            stock: fila['Stock'] || 0,
-            precio: fila['Precio'] || 0,
-            lote: fila['Lote'] || '',
-            fechaCaducidad: fila['Fecha Caducidad'] || '',
+            nombre: fila['Nombre'] || '', categoria: fila['Categoria'] || 'Otros',
+            stock: fila['Stock'] || 0, precio: fila['Precio Venta'] || 0,
+            precioCosto: fila['Precio Costo'] || 0, lote: fila['Lote'] || '',
+            fechaElaboracion: fila['F. Elaboracion'] || '',
+            fechaIngreso: fila['F. Ingreso'] || '',
+            fechaCaducidad: fila['F. Caducidad'] || '',
+            stockMinimo: fila['Stock Minimo'] || 10,
+            stockMaximo: fila['Stock Maximo'] || 1000,
             imagen: ''
           };
           this.http.post('http://localhost:3000/productos', producto, { headers }).subscribe(() => {

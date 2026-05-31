@@ -17,6 +17,9 @@ export class VentasComponent implements OnInit {
   busquedaProducto: string = '';
   productosFiltrados: any[] = [];
   metodoPago: string = 'efectivo';
+  entidadFinanciera: string = '';
+  tipoTarjeta: string = 'debito';
+  recargoPago: number = 0;
   referencia: string = '';
   observacion: string = '';
   efectivoRecibido: number = 0;
@@ -24,6 +27,13 @@ export class VentasComponent implements OnInit {
   ventaActual: any = null;
   historialVentas: any[] = [];
   vistaActual: string = 'nueva';
+  tipoCliente: string = 'consumidor_final';
+  clienteNombre: string = '';
+  clienteCedula: string = '';
+  clienteTelefono: string = '';
+  clienteDireccion: string = '';
+  cajero: string = localStorage.getItem('username') || '';
+  mostrarSelectorCajero: boolean = false;
 
   metodosPago = [
     { valor: 'efectivo', etiqueta: '💵 Efectivo' },
@@ -32,6 +42,8 @@ export class VentasComponent implements OnInit {
     { valor: 'qr', etiqueta: '📱 QR' },
   ];
 
+  entidadesFinancieras = ['Visa', 'Mastercard', 'American Express', 'Banco Pichincha', 'Banco Guayaquil', 'Banco Pacifico', 'Produbanco', 'Deuna', 'PayPhone', 'Otro'];
+
   constructor(
     private http: HttpClient,
     private router: Router,
@@ -39,8 +51,20 @@ export class VentasComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    this.cargarCarritoGuardado();
     this.cargarProductos();
     this.cargarHistorial();
+  }
+
+  cargarCarritoGuardado() {
+    const carritoGuardado = localStorage.getItem('carrito_farmasys');
+    if (carritoGuardado) {
+      this.carrito = JSON.parse(carritoGuardado);
+    }
+  }
+
+  guardarCarrito() {
+    localStorage.setItem('carrito_farmasys', JSON.stringify(this.carrito));
   }
 
   cargarProductos() {
@@ -86,7 +110,7 @@ export class VentasComponent implements OnInit {
         existente.cantidad++;
         existente.subtotal = existente.cantidad * existente.precioUnitario;
       } else {
-        alert(`Stock máximo disponible: ${producto.stock}`);
+        alert(`Stock maximo disponible: ${producto.stock}`);
       }
     } else {
       this.carrito.push({
@@ -98,6 +122,7 @@ export class VentasComponent implements OnInit {
         stockDisponible: producto.stock
       });
     }
+    this.guardarCarrito();
     this.cdr.detectChanges();
   }
 
@@ -107,21 +132,24 @@ export class VentasComponent implements OnInit {
       return;
     }
     if (cantidad > item.stockDisponible) {
-      alert(`Stock máximo disponible: ${item.stockDisponible}`);
+      alert(`Stock maximo disponible: ${item.stockDisponible}`);
       return;
     }
     item.cantidad = cantidad;
     item.subtotal = cantidad * item.precioUnitario;
+    this.guardarCarrito();
     this.cdr.detectChanges();
   }
 
   eliminarDelCarrito(item: any) {
     this.carrito = this.carrito.filter(c => c.productoId !== item.productoId);
+    this.guardarCarrito();
     this.cdr.detectChanges();
   }
 
   get total(): number {
-    return this.carrito.reduce((sum, item) => sum + item.subtotal, 0);
+    const subtotal = this.carrito.reduce((sum, item) => sum + item.subtotal, 0);
+    return subtotal + (this.recargoPago || 0);
   }
 
   get cambio(): number {
@@ -129,6 +157,10 @@ export class VentasComponent implements OnInit {
   }
 
   procesarVenta() {
+    if (!this.cajero.trim()) {
+      this.mostrarSelectorCajero = true;
+      return;
+    }
     if (this.carrito.length === 0) {
       alert('Agrega productos al carrito primero');
       return;
@@ -142,8 +174,17 @@ export class VentasComponent implements OnInit {
     const venta = {
       total: this.total,
       metodoPago: this.metodoPago,
+      entidadFinanciera: this.entidadFinanciera,
+      tipoTarjeta: this.tipoTarjeta,
+      recargoPago: this.recargoPago,
       referencia: this.referencia,
       observacion: this.observacion,
+      tipoCliente: this.tipoCliente,
+      clienteNombre: this.clienteNombre,
+      clienteCedula: this.clienteCedula,
+      clienteTelefono: this.clienteTelefono,
+      clienteDireccion: this.clienteDireccion,
+      cajero: this.cajero,
       detalles: this.carrito
     };
     this.http.post('http://localhost:3000/ventas', venta, { headers }).subscribe({
@@ -156,9 +197,17 @@ export class VentasComponent implements OnInit {
         };
         this.mostrarRecibo = 'block';
         this.carrito = [];
+        localStorage.removeItem('carrito_farmasys');
         this.referencia = '';
         this.observacion = '';
         this.efectivoRecibido = 0;
+        this.entidadFinanciera = '';
+        this.recargoPago = 0;
+        this.clienteNombre = '';
+        this.clienteCedula = '';
+        this.clienteTelefono = '';
+        this.clienteDireccion = '';
+        this.tipoCliente = 'consumidor_final';
         this.cargarProductos();
         this.cargarHistorial();
         this.cdr.detectChanges();
@@ -174,9 +223,6 @@ export class VentasComponent implements OnInit {
     this.ventaActual = null;
   }
 
-  imprimirRecibo() {
-    window.print();
-  }
-
+  imprimirRecibo() { window.print(); }
   volver() { this.router.navigate(['/dashboard']); }
 }

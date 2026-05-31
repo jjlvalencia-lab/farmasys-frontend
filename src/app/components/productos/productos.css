@@ -113,3 +113,6 @@ td.low { color: red; font-weight: bold; }
 .btn-pdf:hover { opacity: 0.9; transform: translateY(-2px); }
 .btn-importar { background: #2563eb; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-size: 0.95rem; font-weight: 600; transition: all 0.3s; }
 .btn-importar:hover { opacity: 0.9; transform: translateY(-2px); }
+.stock-critico { color: #e63946; font-weight: bold; }
+.stock-sobre { color: #f4a261; font-weight: bold; }
+.stock-label { font-size: 0.75rem; margin-left: 4px; }

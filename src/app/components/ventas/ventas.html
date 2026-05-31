@@ -8,6 +8,22 @@
     </div>
   </nav>
 
+  <!-- SELECTOR DE CAJERO -->
+  <div class="modal" *ngIf="mostrarSelectorCajero">
+    <div class="modal-content">
+      <h2>👤 Identificacion del Cajero</h2>
+      <p style="color:#666; margin-bottom:15px;">Por favor identifiquese antes de procesar la venta.</p>
+      <div class="form-group">
+        <label>Nombre del Cajero / Vendedor</label>
+        <input [(ngModel)]="cajero" class="input-field" placeholder="Ingresa tu nombre"/>
+      </div>
+      <div class="modal-buttons">
+        <button (click)="mostrarSelectorCajero = false; procesarVenta()" class="btn-save">Confirmar y Procesar</button>
+        <button (click)="mostrarSelectorCajero = false" class="btn-cancel">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- NUEVA VENTA -->
   <div class="content" *ngIf="vistaActual === 'nueva'">
     <div class="pos-layout">
@@ -15,13 +31,7 @@
       <!-- Panel izquierdo productos -->
       <div class="panel-productos">
         <h2>📦 Productos Disponibles</h2>
-        <input
-          type="text"
-          [(ngModel)]="busquedaProducto"
-          (ngModelChange)="buscarProducto()"
-          placeholder="🔍 Buscar producto..."
-          class="input-busqueda"
-        />
+        <input type="text" [(ngModel)]="busquedaProducto" (ngModelChange)="buscarProducto()" placeholder="🔍 Buscar producto..." class="input-busqueda"/>
         <div class="productos-grid">
           <div class="producto-card" *ngFor="let p of productosFiltrados" (click)="agregarAlCarrito(p)">
             <img *ngIf="p.imagen" [src]="p.imagen" class="producto-img" alt="{{ p.nombre }}"/>
@@ -64,28 +74,80 @@
             </div>
           </div>
 
+          <!-- TIPO DE CLIENTE -->
+          <div class="seccion">
+            <h3>👤 Tipo de Cliente</h3>
+            <div class="tipo-cliente-btns">
+              <button (click)="tipoCliente = 'consumidor_final'" [class.selected]="tipoCliente === 'consumidor_final'" class="btn-metodo">🧾 Consumidor Final</button>
+              <button (click)="tipoCliente = 'con_datos'" [class.selected]="tipoCliente === 'con_datos'" class="btn-metodo">👤 Con Datos</button>
+            </div>
+            <div *ngIf="tipoCliente === 'con_datos'" class="datos-cliente">
+              <input [(ngModel)]="clienteNombre" class="input-field" placeholder="Nombre completo"/>
+              <input [(ngModel)]="clienteCedula" class="input-field" placeholder="Cedula / RUC"/>
+              <input [(ngModel)]="clienteTelefono" class="input-field" placeholder="Telefono"/>
+              <input [(ngModel)]="clienteDireccion" class="input-field" placeholder="Direccion"/>
+            </div>
+          </div>
+
+          <!-- METODO DE PAGO -->
           <div class="pago-section">
-            <h3>💳 Método de Pago</h3>
+            <h3>💳 Metodo de Pago</h3>
             <div class="metodos-pago">
-              <button
-                *ngFor="let m of metodosPago"
-                (click)="metodoPago = m.valor"
-                [class.selected]="metodoPago === m.valor"
-                class="btn-metodo"
-              >{{ m.etiqueta }}</button>
+              <button *ngFor="let m of metodosPago" (click)="metodoPago = m.valor; entidadFinanciera = ''; recargoPago = 0" [class.selected]="metodoPago === m.valor" class="btn-metodo">{{ m.etiqueta }}</button>
             </div>
 
+            <!-- EFECTIVO -->
             <div *ngIf="metodoPago === 'efectivo'">
               <label>Efectivo recibido:</label>
               <input type="number" [(ngModel)]="efectivoRecibido" class="input-field" placeholder="0.00"/>
-              <div class="cambio" *ngIf="efectivoRecibido >= total">
-                Cambio: ${{ cambio.toFixed(2) }}
-              </div>
+              <div class="cambio" *ngIf="efectivoRecibido >= total">Cambio: ${{ cambio.toFixed(2) }}</div>
             </div>
 
-            <div *ngIf="metodoPago !== 'efectivo'">
-              <label>Referencia (opcional):</label>
-              <input type="text" [(ngModel)]="referencia" class="input-field" placeholder="Numero de referencia"/>
+            <!-- TARJETA -->
+            <div *ngIf="metodoPago === 'tarjeta'" class="detalle-pago">
+              <label>Tipo de Tarjeta:</label>
+              <select [(ngModel)]="tipoTarjeta" class="input-field">
+                <option value="debito">Debito</option>
+                <option value="credito">Credito</option>
+              </select>
+              <label>Entidad Financiera:</label>
+              <select [(ngModel)]="entidadFinanciera" class="input-field">
+                <option value="">Seleccionar...</option>
+                <option *ngFor="let e of entidadesFinancieras" [value]="e">{{ e }}</option>
+              </select>
+              <label>Recargo (si aplica $):</label>
+              <input type="number" [(ngModel)]="recargoPago" class="input-field" placeholder="0.00"/>
+              <label>Referencia:</label>
+              <input type="text" [(ngModel)]="referencia" class="input-field" placeholder="Numero de voucher"/>
+            </div>
+
+            <!-- TRANSFERENCIA -->
+            <div *ngIf="metodoPago === 'transferencia'" class="detalle-pago">
+              <label>Banco:</label>
+              <select [(ngModel)]="entidadFinanciera" class="input-field">
+                <option value="">Seleccionar...</option>
+                <option *ngFor="let e of entidadesFinancieras" [value]="e">{{ e }}</option>
+              </select>
+              <label>Numero de Referencia:</label>
+              <input type="text" [(ngModel)]="referencia" class="input-field" placeholder="Referencia de transferencia"/>
+            </div>
+
+            <!-- QR -->
+            <div *ngIf="metodoPago === 'qr'" class="detalle-pago">
+              <label>Plataforma:</label>
+              <select [(ngModel)]="entidadFinanciera" class="input-field">
+                <option value="">Seleccionar...</option>
+                <option value="Deuna">Deuna</option>
+                <option value="PayPhone">PayPhone</option>
+                <option value="Otro">Otro</option>
+              </select>
+              <label>Referencia:</label>
+              <input type="text" [(ngModel)]="referencia" class="input-field" placeholder="Codigo de transaccion"/>
+            </div>
+
+            <div class="detalle-pago">
+              <label>Cajero / Vendedor:</label>
+              <input [(ngModel)]="cajero" class="input-field" placeholder="Nombre del cajero"/>
             </div>
 
             <div>
@@ -109,7 +171,10 @@
           <th>#</th>
           <th>Fecha</th>
           <th>Total</th>
-          <th>Metodo de Pago</th>
+          <th>Metodo</th>
+          <th>Entidad</th>
+          <th>Cliente</th>
+          <th>Cajero</th>
           <th>Productos</th>
         </tr>
       </thead>
@@ -119,6 +184,9 @@
           <td>{{ v.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
           <td><strong style="color:#2a9d8f">${{ v.total }}</strong></td>
           <td>{{ v.metodoPago }}</td>
+          <td>{{ v.entidadFinanciera || '-' }}</td>
+          <td>{{ v.tipoCliente === 'con_datos' ? v.clienteNombre : 'Consumidor Final' }}</td>
+          <td>{{ v.cajero || '-' }}</td>
           <td>{{ v.detalles?.length }} producto(s)</td>
         </tr>
       </tbody>
@@ -135,7 +203,14 @@
         <hr/>
         <p><strong>Recibo #{{ ventaActual.id }}</strong></p>
         <p>{{ ventaActual.fecha | date:'dd/MM/yyyy HH:mm' }}</p>
+        <p *ngIf="ventaActual.cajero">Atendido por: <strong>{{ ventaActual.cajero }}</strong></p>
       </div>
+      <div *ngIf="ventaActual.tipoCliente === 'con_datos'" class="recibo-cliente">
+        <p><strong>Cliente:</strong> {{ ventaActual.clienteNombre }}</p>
+        <p *ngIf="ventaActual.clienteCedula"><strong>Cedula:</strong> {{ ventaActual.clienteCedula }}</p>
+        <p *ngIf="ventaActual.clienteTelefono"><strong>Tel:</strong> {{ ventaActual.clienteTelefono }}</p>
+      </div>
+      <hr/>
       <div class="recibo-items">
         <div class="recibo-item" *ngFor="let d of ventaActual.detalles">
           <span>{{ d.nombreProducto }} x{{ d.cantidad }}</span>
@@ -146,6 +221,7 @@
       <div class="recibo-total">TOTAL: ${{ ventaActual.total }}</div>
       <div class="recibo-pago">
         <p>Metodo: {{ ventaActual.metodoPagoEtiqueta }}</p>
+        <p *ngIf="ventaActual.entidadFinanciera">Entidad: {{ ventaActual.entidadFinanciera }}</p>
         <p *ngIf="ventaActual.metodoPago === 'efectivo'">Recibido: ${{ ventaActual.efectivoRecibido }}</p>
         <p *ngIf="ventaActual.metodoPago === 'efectivo'">Cambio: ${{ ventaActual.cambio?.toFixed(2) }}</p>
         <p *ngIf="ventaActual.referencia">Ref: {{ ventaActual.referencia }}</p>
