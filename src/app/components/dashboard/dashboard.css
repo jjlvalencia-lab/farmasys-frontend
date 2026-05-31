@@ -215,3 +215,19 @@ td.low { color: #e63946; font-weight: bold; }
   .navbar { padding: 12px 15px; }
   .nav-brand { font-size: 1.2rem; }
 }
+.card.ventas { border-left-color: #2196f3; }
+
+.grafica-ventas {
+  background: white;
+  padding: 25px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  margin-bottom: 30px;
+  animation: fadeInUp 0.6s ease;
+}
+
+.grafica-ventas h2 {
+  color: #264653;
+  font-size: 1.1rem;
+  margin-bottom: 20px;
+}

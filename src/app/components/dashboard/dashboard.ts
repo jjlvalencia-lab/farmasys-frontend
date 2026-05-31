@@ -20,9 +20,11 @@ export class DashboardComponent implements OnInit {
   sobrestock = 0;
   alertasVencimiento: any[] = [];
   rol: string = '';
+  totalVentas = 0;
 
   barChartData: ChartData<'bar'> = { labels: [], datasets: [] };
   pieChartData: ChartData<'pie'> = { labels: [], datasets: [] };
+  lineChartData: ChartData<'line'> = { labels: [], datasets: [] };
 
   barChartOptions: ChartOptions<'bar'> = {
     responsive: true,
@@ -33,6 +35,12 @@ export class DashboardComponent implements OnInit {
   pieChartOptions: ChartOptions<'pie'> = {
     responsive: true,
     plugins: { legend: { position: 'bottom' } }
+  };
+
+  lineChartOptions: ChartOptions<'line'> = {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: { y: { beginAtZero: true } }
   };
 
   constructor(
@@ -46,6 +54,7 @@ export class DashboardComponent implements OnInit {
     this.rol = localStorage.getItem('rol') || 'admin';
     const token = localStorage.getItem('token');
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+
     this.http.get<any[]>(`http://localhost:3000/productos?t=${Date.now()}`, { headers }).subscribe({
       next: (data) => {
         this.productos = [...data];
@@ -53,10 +62,19 @@ export class DashboardComponent implements OnInit {
         this.stockBajo = data.filter(p => p.stock < 50).length;
         this.sobrestock = data.filter(p => p.stock > 1000).length;
         this.calcularAlertas(data);
-        this.generarGraficas(data);
+        this.generarGraficasProductos(data);
         this.cdr.detectChanges();
       },
-      error: (err) => console.error('Error:', err)
+      error: (err) => console.error('Error productos:', err)
+    });
+
+    this.http.get<any[]>(`http://localhost:3000/ventas?t=${Date.now()}`, { headers }).subscribe({
+      next: (ventas) => {
+        this.totalVentas = ventas.reduce((sum, v) => sum + parseFloat(v.total), 0);
+        this.generarGraficaVentas(ventas);
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error('Error ventas:', err)
     });
   }
 
@@ -80,7 +98,7 @@ export class DashboardComponent implements OnInit {
       .sort((a, b) => a.diasRestantes - b.diasRestantes);
   }
 
-  generarGraficas(data: any[]) {
+  generarGraficasProductos(data: any[]) {
     const top10 = [...data].sort((a, b) => b.stock - a.stock).slice(0, 10);
     this.barChartData = {
       labels: top10.map(p => p.nombre),
@@ -101,6 +119,38 @@ export class DashboardComponent implements OnInit {
       datasets: [{
         data: Object.values(categorias),
         backgroundColor: ['#2a9d8f','#264653','#f4a261','#e63946','#e9c46a','#2196f3','#8ecae6']
+      }]
+    };
+  }
+
+  generarGraficaVentas(ventas: any[]) {
+    const hoy = new Date();
+    const ultimos7 = [];
+    const labels = [];
+
+    for (let i = 6; i >= 0; i--) {
+      const fecha = new Date(hoy);
+      fecha.setDate(hoy.getDate() - i);
+      const fechaStr = fecha.toISOString().split('T')[0];
+      labels.push(fecha.toLocaleDateString('es', { weekday: 'short', day: 'numeric' }));
+
+      const totalDia = ventas
+        .filter(v => v.fecha.startsWith(fechaStr))
+        .reduce((sum, v) => sum + parseFloat(v.total), 0);
+
+      ultimos7.push(totalDia);
+    }
+
+    this.lineChartData = {
+      labels,
+      datasets: [{
+        data: ultimos7,
+        borderColor: '#2a9d8f',
+        backgroundColor: 'rgba(42,157,143,0.1)',
+        fill: true,
+        tension: 0.4,
+        pointBackgroundColor: '#264653',
+        pointRadius: 5
       }]
     };
   }
