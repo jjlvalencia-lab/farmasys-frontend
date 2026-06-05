@@ -3,7 +3,8 @@
     <div class="nav-brand">🏥 FarmaSys — Punto de Venta</div>
     <div class="nav-links">
       <button (click)="vistaActual = 'nueva'" [class.active]="vistaActual === 'nueva'" class="btn-nav">🛒 Nueva Venta</button>
-      <button (click)="vistaActual = 'historial'; cargarHistorial()" [class.active]="vistaActual === 'historial'" class="btn-nav">📋 Historial</button>
+      <button (click)="vistaActual = 'historial'; fechaBuscada = false" [class.active]="vistaActual === 'historial'" class="btn-nav">📋 Historial</button>
+      <button (click)="vistaActual = 'cierre'; cargarCierre()" [class.active]="vistaActual === 'cierre'" class="btn-nav">🗃️ Cierre de Caja</button>
       <button (click)="volver()" class="btn-back">← Volver</button>
     </div>
   </nav>
@@ -12,7 +13,7 @@
   <div class="modal" *ngIf="mostrarSelectorCajero">
     <div class="modal-content">
       <h2>👤 Identificacion del Cajero</h2>
-      <p style="color:#666; margin-bottom:15px;">Por favor identifiquese antes de procesar la venta.</p>
+      <p style="color:#666; margin-bottom:15px;">Identifiquese antes de procesar la venta.</p>
       <div class="form-group">
         <label>Nombre del Cajero / Vendedor</label>
         <input [(ngModel)]="cajero" class="input-field" placeholder="Ingresa tu nombre"/>
@@ -28,30 +29,31 @@
   <div class="content" *ngIf="vistaActual === 'nueva'">
     <div class="pos-layout">
 
-      <!-- Panel izquierdo productos -->
       <div class="panel-productos">
         <h2>📦 Productos Disponibles</h2>
         <input type="text" [(ngModel)]="busquedaProducto" (ngModelChange)="buscarProducto()" placeholder="🔍 Buscar producto..." class="input-busqueda"/>
         <div class="productos-grid">
-          <div class="producto-card" *ngFor="let p of productosFiltrados" (click)="agregarAlCarrito(p)">
+          <div class="producto-card" *ngFor="let p of productosFiltrados">
             <img *ngIf="p.imagen" [src]="p.imagen" class="producto-img" alt="{{ p.nombre }}"/>
             <div *ngIf="!p.imagen" class="producto-emoji">💊</div>
             <div class="producto-nombre">{{ p.nombre }}</div>
             <div class="producto-categoria">{{ p.categoria }}</div>
-            <div class="producto-precio">${{ p.precio }}</div>
+            <div class="producto-precio">${{ p.precio }} / unidad</div>
+            <div *ngIf="p.unidadesPorCaja > 1" class="producto-precio-caja">${{ p.precioCaja }} / caja ({{ p.unidadesPorCaja }} und)</div>
             <div class="producto-stock" [class.low]="p.stock < 10">Stock: {{ p.stock }}</div>
+            <div class="producto-btns">
+              <button (click)="agregarAlCarrito(p, 'unidad')" class="btn-add-unidad">+ Unidad</button>
+              <button *ngIf="p.unidadesPorCaja > 1" (click)="agregarAlCarrito(p, 'caja')" class="btn-add-caja">+ Caja</button>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Panel derecho carrito -->
       <div class="panel-carrito">
         <h2>🛒 Carrito de Compra</h2>
-
         <div class="carrito-vacio" *ngIf="carrito.length === 0">
           <p>Selecciona un producto para comenzar</p>
         </div>
-
         <div *ngIf="carrito.length > 0">
           <div class="carrito-item" *ngFor="let item of carrito">
             <div class="item-info">
@@ -74,7 +76,6 @@
             </div>
           </div>
 
-          <!-- TIPO DE CLIENTE -->
           <div class="seccion">
             <h3>👤 Tipo de Cliente</h3>
             <div class="tipo-cliente-btns">
@@ -89,21 +90,16 @@
             </div>
           </div>
 
-          <!-- METODO DE PAGO -->
           <div class="pago-section">
             <h3>💳 Metodo de Pago</h3>
             <div class="metodos-pago">
               <button *ngFor="let m of metodosPago" (click)="metodoPago = m.valor; entidadFinanciera = ''; recargoPago = 0" [class.selected]="metodoPago === m.valor" class="btn-metodo">{{ m.etiqueta }}</button>
             </div>
-
-            <!-- EFECTIVO -->
             <div *ngIf="metodoPago === 'efectivo'">
               <label>Efectivo recibido:</label>
               <input type="number" [(ngModel)]="efectivoRecibido" class="input-field" placeholder="0.00"/>
               <div class="cambio" *ngIf="efectivoRecibido >= total">Cambio: ${{ cambio.toFixed(2) }}</div>
             </div>
-
-            <!-- TARJETA -->
             <div *ngIf="metodoPago === 'tarjeta'" class="detalle-pago">
               <label>Tipo de Tarjeta:</label>
               <select [(ngModel)]="tipoTarjeta" class="input-field">
@@ -120,8 +116,6 @@
               <label>Referencia:</label>
               <input type="text" [(ngModel)]="referencia" class="input-field" placeholder="Numero de voucher"/>
             </div>
-
-            <!-- TRANSFERENCIA -->
             <div *ngIf="metodoPago === 'transferencia'" class="detalle-pago">
               <label>Banco:</label>
               <select [(ngModel)]="entidadFinanciera" class="input-field">
@@ -131,8 +125,6 @@
               <label>Numero de Referencia:</label>
               <input type="text" [(ngModel)]="referencia" class="input-field" placeholder="Referencia de transferencia"/>
             </div>
-
-            <!-- QR -->
             <div *ngIf="metodoPago === 'qr'" class="detalle-pago">
               <label>Plataforma:</label>
               <select [(ngModel)]="entidadFinanciera" class="input-field">
@@ -144,17 +136,14 @@
               <label>Referencia:</label>
               <input type="text" [(ngModel)]="referencia" class="input-field" placeholder="Codigo de transaccion"/>
             </div>
-
             <div class="detalle-pago">
               <label>Cajero / Vendedor:</label>
               <input [(ngModel)]="cajero" class="input-field" placeholder="Nombre del cajero"/>
             </div>
-
             <div>
               <label>Observacion (opcional):</label>
               <input type="text" [(ngModel)]="observacion" class="input-field" placeholder="Nota adicional"/>
             </div>
-
             <button (click)="procesarVenta()" class="btn-procesar">✅ Procesar Venta</button>
           </div>
         </div>
@@ -162,36 +151,105 @@
     </div>
   </div>
 
-  <!-- HISTORIAL -->
+  <!-- HISTORIAL POR FECHA -->
   <div class="content" *ngIf="vistaActual === 'historial'">
     <h2 style="color:#264653; margin-bottom:20px;">📋 Historial de Ventas</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Fecha</th>
-          <th>Total</th>
-          <th>Metodo</th>
-          <th>Entidad</th>
-          <th>Cliente</th>
-          <th>Cajero</th>
-          <th>Productos</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let v of historialVentas">
-          <td><strong>#{{ v.id }}</strong></td>
-          <td>{{ v.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
-          <td><strong style="color:#2a9d8f">${{ v.total }}</strong></td>
-          <td>{{ v.metodoPago }}</td>
-          <td>{{ v.entidadFinanciera || '-' }}</td>
-          <td>{{ v.tipoCliente === 'con_datos' ? v.clienteNombre : 'Consumidor Final' }}</td>
-          <td>{{ v.cajero || '-' }}</td>
-          <td>{{ v.detalles?.length }} producto(s)</td>
-        </tr>
-      </tbody>
-    </table>
-    <p *ngIf="historialVentas.length === 0" style="text-align:center; color:#aaa; margin-top:30px;">No hay ventas registradas aun.</p>
+    <div class="historial-buscador">
+      <label>Selecciona una fecha para ver las ventas:</label>
+      <div class="historial-filtros">
+        <input type="date" [(ngModel)]="fechaHistorial" class="input-fecha"/>
+        <button (click)="buscarVentasPorFecha()" class="btn-buscar-fecha">🔍 Buscar</button>
+      </div>
+    </div>
+
+    <div *ngIf="fechaBuscada">
+      <div class="resumen-fecha" *ngIf="ventasPorFecha.length > 0">
+        <span>📅 {{ fechaHistorial }} — <strong>{{ ventasPorFecha.length }} ventas</strong></span>
+        <span>Total: <strong style="color:#2a9d8f">${{ ventasPorFecha.reduce(getTotalVentas, 0) }}</strong></span>
+      </div>
+      <table *ngIf="ventasPorFecha.length > 0">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Hora</th>
+            <th>Total</th>
+            <th>Metodo</th>
+            <th>Entidad</th>
+            <th>Cliente</th>
+            <th>Cajero</th>
+            <th>Productos</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let v of ventasPorFecha">
+            <td><strong>#{{ v.id }}</strong></td>
+            <td>{{ v.fecha | date:'HH:mm' }}</td>
+            <td><strong style="color:#2a9d8f">${{ v.total }}</strong></td>
+            <td>{{ v.metodoPago }}</td>
+            <td>{{ v.entidadFinanciera || '-' }}</td>
+            <td>{{ v.tipoCliente === 'con_datos' ? v.clienteNombre : 'Consumidor Final' }}</td>
+            <td>{{ v.cajero || '-' }}</td>
+            <td>{{ v.detalles?.length }} producto(s)</td>
+          </tr>
+        </tbody>
+      </table>
+      <p *ngIf="ventasPorFecha.length === 0" style="text-align:center; color:#aaa; padding:40px;">No hay ventas registradas en esta fecha.</p>
+    </div>
+
+    <div *ngIf="!fechaBuscada" style="text-align:center; color:#aaa; padding:60px;">
+      <p style="font-size:1.2rem;">📅 Selecciona una fecha y pulsa Buscar</p>
+    </div>
+  </div>
+
+  <!-- CIERRE DE CAJA -->
+  <div class="content" *ngIf="vistaActual === 'cierre'">
+    <h2 style="color:#264653; margin-bottom:20px;">🗃️ Cierre de Caja</h2>
+    <div class="cierre-header">
+      <input type="date" [(ngModel)]="fechaCierre" class="input-fecha"/>
+      <button (click)="cargarCierre()" class="btn-buscar-fecha">🔄 Actualizar</button>
+    </div>
+
+    <div *ngIf="cierreData" class="cierre-container">
+      <div class="cierre-cards">
+        <div class="cierre-card">
+          <h4>Total Ventas</h4>
+          <p class="cierre-num">${{ cierreData.totalVentas }}</p>
+          <small>{{ cierreData.cantidadVentas }} transacciones</small>
+        </div>
+        <div class="cierre-card verde">
+          <h4>Ganancia Estimada</h4>
+          <p class="cierre-num">${{ cierreData.gananciaEstimada }}</p>
+        </div>
+        <div class="cierre-card azul">
+          <h4>Efectivo</h4>
+          <p class="cierre-num">${{ cierreData.totalEfectivo }}</p>
+        </div>
+        <div class="cierre-card naranja">
+          <h4>Tarjeta</h4>
+          <p class="cierre-num">${{ cierreData.totalTarjeta }}</p>
+        </div>
+        <div class="cierre-card morado">
+          <h4>Transferencia</h4>
+          <p class="cierre-num">${{ cierreData.totalTransferencia }}</p>
+        </div>
+        <div class="cierre-card rosa">
+          <h4>QR</h4>
+          <p class="cierre-num">${{ cierreData.totalQr }}</p>
+        </div>
+      </div>
+
+      <div class="cierre-cuadre">
+        <h3>💰 Cuadre de Caja</h3>
+        <p>Ingresa el efectivo contado fisicamente:</p>
+        <input type="number" [(ngModel)]="efectivoCajero" class="input-field" placeholder="0.00" style="max-width:200px"/>
+        <div class="diferencia" [class.positivo]="diferenciaCaja >= 0" [class.negativo]="diferenciaCaja < 0" *ngIf="efectivoCajero > 0">
+          <strong>Diferencia: ${{ diferenciaCaja.toFixed(2) }}</strong>
+          <span *ngIf="diferenciaCaja === 0"> ✅ Caja cuadrada</span>
+          <span *ngIf="diferenciaCaja > 0"> ⬆️ Sobra efectivo</span>
+          <span *ngIf="diferenciaCaja < 0"> ⬇️ Falta efectivo</span>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- RECIBO -->

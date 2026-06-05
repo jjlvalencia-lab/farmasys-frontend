@@ -27,13 +27,18 @@ export class ProductosComponent implements OnInit {
   constructor(private http: HttpClient, private router: Router, private cdr: ChangeDetectorRef) {}
 
   nuevoProducto() {
-    return {
-      nombre: '', precio: 0, precioCosto: 0, lote: '',
-      fechaElaboracion: '', fechaIngreso: new Date().toISOString().split('T')[0],
-      fechaCaducidad: '', stock: 0, stockMinimo: 10, stockMaximo: 1000,
-      imagen: '', categoria: 'Otros'
-    };
-  }
+  return {
+    nombre: '', precio: 0, precioCosto: 0,
+    unidadesPorCaja: 1, precioCaja: 0,
+    lote: '', fechaElaboracion: '',
+    fechaIngreso: new Date().toISOString().split('T')[0],
+    fechaCaducidad: '', stock: 0,
+    stockMinimo: 10, stockMaximo: 1000,
+    imagen: '', categoria: 'Otros',
+    enPromocion: false, descuento: 0,
+    promocionInicio: '', promocionFin: ''
+  };
+}          
 
   ngOnInit() { this.cargarProductos(); }
 
@@ -205,4 +210,71 @@ export class ProductosComponent implements OnInit {
   }
 
   volver() { this.router.navigate(['/dashboard']); }
+
+  activarPromocion(producto: any) {
+  this.productoActual = { ...producto };
+  this.editando = true;
+  this.mostrarFormulario = true;
+}
+
+exportarMasVendidos() {
+  import('xlsx').then(XLSX => {
+    const datos = [...this.productos]
+      .sort((a, b) => b.stock - a.stock)
+      .slice(0, 20)
+      .map(p => ({
+        'Nombre': p.nombre, 'Categoria': p.categoria,
+        'Stock': p.stock, 'Precio Venta': p.precio,
+        'Precio Costo': p.precioCosto, 'Lote': p.lote
+      }));
+    const hoja = XLSX.utils.json_to_sheet(datos);
+    const libro = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(libro, hoja, 'Mas Vendidos');
+    XLSX.writeFile(libro, 'productos-mayor-stock.xlsx');
+  });
+}
+
+exportarPorVencer() {
+  import('xlsx').then(XLSX => {
+    const hoy = new Date();
+    const datos = this.productos
+      .filter(p => {
+        const dias = Math.ceil((new Date(p.fechaCaducidad).getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24));
+        return dias <= 30 && dias >= 0;
+      })
+      .map(p => ({
+        'Nombre': p.nombre, 'Lote': p.lote,
+        'Stock': p.stock, 'F. Caducidad': p.fechaCaducidad,
+        'Categoria': p.categoria
+      }));
+    const hoja = XLSX.utils.json_to_sheet(datos);
+    const libro = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(libro, hoja, 'Por Vencer');
+    XLSX.writeFile(libro, 'productos-por-vencer.xlsx');
+  });
+}
+
+exportarEnPromocion() {
+  import('xlsx').then(XLSX => {
+    const datos = this.productos
+      .filter(p => p.enPromocion)
+      .map(p => ({
+        'Nombre': p.nombre, 'Descuento %': p.descuento,
+        'Precio Original': p.precio,
+        'Precio con Descuento': (p.precio * (1 - p.descuento / 100)).toFixed(2),
+        'Desde': p.promocionInicio, 'Hasta': p.promocionFin
+      }));
+    const hoja = XLSX.utils.json_to_sheet(datos);
+    const libro = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(libro, hoja, 'Promociones');
+    XLSX.writeFile(libro, 'productos-en-promocion.xlsx');
+  });
+}
+
+getPrecioConDescuento(p: any): number {
+  if (p.enPromocion && p.descuento > 0) {
+    return p.precio * (1 - p.descuento / 100);
+  }
+  return p.precio;
+}
 }

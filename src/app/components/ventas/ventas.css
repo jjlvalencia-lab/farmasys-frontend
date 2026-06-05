@@ -394,3 +394,29 @@ tr:hover td { background: #f8fdfc; }
 .btn-cancel { flex: 1; padding: 12px; background: #f0f0f0; color: #555; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; }
 .form-group { margin-bottom: 15px; }
 .form-group label { display: block; color: #264653; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem; }
+.producto-btns { display: flex; gap: 5px; margin-top: 8px; }
+.btn-add-unidad { flex: 1; padding: 6px; background: #2a9d8f; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; }
+.btn-add-caja { flex: 1; padding: 6px; background: #264653; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; }
+.producto-precio-caja { color: #264653; font-size: 0.8rem; font-weight: 600; }
+.historial-buscador { background: white; padding: 20px; border-radius: 16px; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+.historial-buscador label { color: #264653; font-weight: 600; display: block; margin-bottom: 10px; }
+.historial-filtros { display: flex; gap: 10px; align-items: center; }
+.input-fecha { padding: 10px 15px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1rem; }
+.btn-buscar-fecha { padding: 10px 20px; background: linear-gradient(135deg, #2a9d8f, #264653); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; }
+.resumen-fecha { display: flex; justify-content: space-between; background: #e8f5f3; padding: 12px 20px; border-radius: 10px; margin-bottom: 15px; color: #264653; }
+.cierre-header { display: flex; gap: 10px; align-items: center; margin-bottom: 20px; }
+.cierre-container { display: flex; flex-direction: column; gap: 20px; }
+.cierre-cards { display: flex; gap: 15px; flex-wrap: wrap; }
+.cierre-card { background: white; padding: 20px; border-radius: 12px; flex: 1; min-width: 130px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border-top: 4px solid #2a9d8f; }
+.cierre-card.verde { border-top-color: #27ae60; }
+.cierre-card.azul { border-top-color: #2196f3; }
+.cierre-card.naranja { border-top-color: #f4a261; }
+.cierre-card.morado { border-top-color: #9b59b6; }
+.cierre-card.rosa { border-top-color: #e63946; }
+.cierre-card h4 { color: #888; font-size: 0.8rem; margin: 0 0 8px; text-transform: uppercase; }
+.cierre-num { font-size: 1.4rem; font-weight: 800; color: #264653; margin: 0; }
+.cierre-cuadre { background: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+.cierre-cuadre h3 { color: #264653; margin-bottom: 10px; }
+.diferencia { margin-top: 15px; padding: 12px 20px; border-radius: 10px; font-size: 1.1rem; }
+.diferencia.positivo { background: #e8f5e9; color: #27ae60; }
+.diferencia.negativo { background: #ffeaea; color: #e63946; }

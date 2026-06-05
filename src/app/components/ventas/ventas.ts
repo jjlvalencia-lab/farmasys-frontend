@@ -35,6 +35,17 @@ export class VentasComponent implements OnInit {
   cajero: string = localStorage.getItem('username') || '';
   mostrarSelectorCajero: boolean = false;
 
+  // Historial por fecha
+  fechaHistorial: string = new Date().toISOString().split('T')[0];
+  ventasPorFecha: any[] = [];
+  fechaBuscada: boolean = false;
+
+  // Cierre de caja
+  mostrarCierre: boolean = false;
+  fechaCierre: string = new Date().toISOString().split('T')[0];
+  cierreData: any = null;
+  efectivoCajero: number = 0;
+
   metodosPago = [
     { valor: 'efectivo', etiqueta: '💵 Efectivo' },
     { valor: 'tarjeta', etiqueta: '💳 Tarjeta' },
@@ -53,7 +64,6 @@ export class VentasComponent implements OnInit {
   ngOnInit() {
     this.cargarCarritoGuardado();
     this.cargarProductos();
-    this.cargarHistorial();
   }
 
   cargarCarritoGuardado() {
@@ -79,17 +89,6 @@ export class VentasComponent implements OnInit {
     });
   }
 
-  cargarHistorial() {
-    const token = localStorage.getItem('token');
-    const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
-    this.http.get<any[]>(`http://localhost:3000/ventas?t=${Date.now()}`, { headers }).subscribe({
-      next: (data) => {
-        this.historialVentas = data;
-        this.cdr.detectChanges();
-      }
-    });
-  }
-
   buscarProducto() {
     const texto = this.busquedaProducto.toLowerCase().trim();
     if (!texto) {
@@ -103,23 +102,31 @@ export class VentasComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
-  agregarAlCarrito(producto: any) {
-    const existente = this.carrito.find(c => c.productoId === producto.id);
+  agregarAlCarrito(producto: any, tipo: string = 'unidad') {
+    const key = `${producto.id}_${tipo}`;
+    const existente = this.carrito.find(c => c.key === key);
+    const precio = tipo === 'caja' ? parseFloat(producto.precioCaja) : parseFloat(producto.precio);
+    const unidades = tipo === 'caja' ? producto.unidadesPorCaja : 1;
+
     if (existente) {
-      if (existente.cantidad < producto.stock) {
-        existente.cantidad++;
-        existente.subtotal = existente.cantidad * existente.precioUnitario;
-      } else {
-        alert(`Stock maximo disponible: ${producto.stock}`);
+      const totalUnidades = (existente.cantidad + 1) * unidades;
+      if (totalUnidades > producto.stock) {
+        alert(`Stock insuficiente`);
+        return;
       }
+      existente.cantidad++;
+      existente.subtotal = existente.cantidad * precio;
     } else {
       this.carrito.push({
+        key,
         productoId: producto.id,
-        nombreProducto: producto.nombre,
+        nombreProducto: `${producto.nombre}${tipo === 'caja' ? ' (Caja)' : ''}`,
+        tipo,
+        unidadesPorCaja: unidades,
         cantidad: 1,
-        precioUnitario: parseFloat(producto.precio),
-        subtotal: parseFloat(producto.precio),
-        stockDisponible: producto.stock
+        precioUnitario: precio,
+        subtotal: precio,
+        stockDisponible: Math.floor(producto.stock / unidades)
       });
     }
     this.guardarCarrito();
@@ -132,7 +139,7 @@ export class VentasComponent implements OnInit {
       return;
     }
     if (cantidad > item.stockDisponible) {
-      alert(`Stock maximo disponible: ${item.stockDisponible}`);
+      alert(`Stock maximo: ${item.stockDisponible}`);
       return;
     }
     item.cantidad = cantidad;
@@ -142,7 +149,7 @@ export class VentasComponent implements OnInit {
   }
 
   eliminarDelCarrito(item: any) {
-    this.carrito = this.carrito.filter(c => c.productoId !== item.productoId);
+    this.carrito = this.carrito.filter(c => c.key !== item.key);
     this.guardarCarrito();
     this.cdr.detectChanges();
   }
@@ -171,21 +178,21 @@ export class VentasComponent implements OnInit {
     }
     const token = localStorage.getItem('token');
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+    const detalles = this.carrito.map(item => ({
+      productoId: item.productoId,
+      nombreProducto: item.nombreProducto,
+      cantidad: item.tipo === 'caja' ? item.cantidad * item.unidadesPorCaja : item.cantidad,
+      precioUnitario: item.precioUnitario,
+      subtotal: item.subtotal
+    }));
     const venta = {
-      total: this.total,
-      metodoPago: this.metodoPago,
-      entidadFinanciera: this.entidadFinanciera,
-      tipoTarjeta: this.tipoTarjeta,
-      recargoPago: this.recargoPago,
-      referencia: this.referencia,
-      observacion: this.observacion,
-      tipoCliente: this.tipoCliente,
-      clienteNombre: this.clienteNombre,
-      clienteCedula: this.clienteCedula,
-      clienteTelefono: this.clienteTelefono,
-      clienteDireccion: this.clienteDireccion,
-      cajero: this.cajero,
-      detalles: this.carrito
+      total: this.total, metodoPago: this.metodoPago,
+      entidadFinanciera: this.entidadFinanciera, tipoTarjeta: this.tipoTarjeta,
+      recargoPago: this.recargoPago, referencia: this.referencia,
+      observacion: this.observacion, tipoCliente: this.tipoCliente,
+      clienteNombre: this.clienteNombre, clienteCedula: this.clienteCedula,
+      clienteTelefono: this.clienteTelefono, clienteDireccion: this.clienteDireccion,
+      cajero: this.cajero, detalles
     };
     this.http.post('http://localhost:3000/ventas', venta, { headers }).subscribe({
       next: (res: any) => {
@@ -198,31 +205,52 @@ export class VentasComponent implements OnInit {
         this.mostrarRecibo = 'block';
         this.carrito = [];
         localStorage.removeItem('carrito_farmasys');
-        this.referencia = '';
-        this.observacion = '';
-        this.efectivoRecibido = 0;
-        this.entidadFinanciera = '';
-        this.recargoPago = 0;
-        this.clienteNombre = '';
-        this.clienteCedula = '';
-        this.clienteTelefono = '';
-        this.clienteDireccion = '';
-        this.tipoCliente = 'consumidor_final';
+        this.referencia = ''; this.observacion = '';
+        this.efectivoRecibido = 0; this.entidadFinanciera = '';
+        this.recargoPago = 0; this.clienteNombre = '';
+        this.clienteCedula = ''; this.clienteTelefono = '';
+        this.clienteDireccion = ''; this.tipoCliente = 'consumidor_final';
         this.cargarProductos();
-        this.cargarHistorial();
         this.cdr.detectChanges();
       },
-      error: (err) => {
-        alert('Error al procesar la venta: ' + err.error?.message);
+      error: (err) => alert('Error al procesar la venta: ' + err.error?.message)
+    });
+  }
+
+  buscarVentasPorFecha() {
+    if (!this.fechaHistorial) return;
+    const token = localStorage.getItem('token');
+    const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+    this.http.get<any[]>(`http://localhost:3000/ventas/fecha?fecha=${this.fechaHistorial}`, { headers }).subscribe({
+      next: (data) => {
+        this.ventasPorFecha = data;
+        this.fechaBuscada = true;
+        this.cdr.detectChanges();
       }
     });
   }
 
-  cerrarRecibo() {
-    this.mostrarRecibo = 'none';
-    this.ventaActual = null;
+  cargarCierre() {
+    const token = localStorage.getItem('token');
+    const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+    this.http.get<any>(`http://localhost:3000/ventas/cierre?fecha=${this.fechaCierre}`, { headers }).subscribe({
+      next: (data) => {
+        this.cierreData = data;
+        this.cdr.detectChanges();
+      }
+    });
   }
 
+  get diferenciaCaja(): number {
+    if (!this.cierreData) return 0;
+    return this.efectivoCajero - parseFloat(this.cierreData.totalEfectivo);
+  }
+
+  cerrarRecibo() { this.mostrarRecibo = 'none'; this.ventaActual = null; }
   imprimirRecibo() { window.print(); }
   volver() { this.router.navigate(['/dashboard']); }
+
+  getTotalVentas(sum: number, v: any): number {
+  return sum + parseFloat(v.total);
+ }
 }

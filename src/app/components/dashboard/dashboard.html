@@ -34,6 +34,83 @@
       </div>
     </div>
 
+    <!-- ANALISIS DE PERDIDA Y GANANCIA -->
+    <div class="analisis-container" *ngIf="analisis && rol === 'admin'">
+      <h2>📊 Analisis de Inventario</h2>
+      <div class="analisis-cards">
+        <div class="analisis-card invertido">
+          <h4>💰 Total Invertido</h4>
+          <p>${{ analisis.totalInvertido }}</p>
+          <small>Costo total del inventario actual</small>
+        </div>
+        <div class="analisis-card potencial">
+          <h4>📈 Venta Potencial</h4>
+          <p>${{ analisis.valorVentaPotencial }}</p>
+          <small>Si se vende todo el inventario</small>
+        </div>
+        <div class="analisis-card ganancia">
+          <h4>✅ Ganancia Estimada</h4>
+          <p>${{ analisis.gananciaEstimada }}</p>
+          <small>Diferencia entre costo y venta</small>
+        </div>
+        <div class="analisis-card sin-movimiento">
+          <h4>⚠️ Sin Movimiento</h4>
+          <p>{{ analisis.productosSinMovimiento }}</p>
+          <small>Productos sin vender en 30+ dias</small>
+        </div>
+        <div class="analisis-card agotado">
+          <h4>❌ Agotados</h4>
+          <p>{{ analisis.productosAgotados }}</p>
+          <small>Productos con stock 0</small>
+        </div>
+        <div class="analisis-card promo">
+          <h4>🏷️ En Promocion</h4>
+          <p>{{ analisis.enPromocion }}</p>
+          <small>Productos con descuento activo</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROTACION DE PRODUCTOS -->
+    <div class="rotacion-container" *ngIf="rol === 'admin'">
+      <div class="rotacion-header">
+        <h2>🔄 Rotacion de Productos</h2>
+        <button (click)="mostrarRotacion = !mostrarRotacion" class="btn-toggle">
+          {{ mostrarRotacion ? 'Ocultar' : 'Ver detalle' }}
+        </button>
+      </div>
+      <div *ngIf="mostrarRotacion">
+        <table>
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th>Categoria</th>
+              <th>Stock</th>
+              <th>Dias en Inventario</th>
+              <th>Valor en Bodega</th>
+              <th>Ganancia Estimada</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let r of rotacion">
+              <td>{{ r.nombre }}</td>
+              <td><span class="badge">{{ r.categoria }}</span></td>
+              <td>{{ r.stock }}</td>
+              <td>{{ r.diasEnInventario }} dias</td>
+              <td>${{ r.valorInventario.toFixed(2) }}</td>
+              <td>${{ r.gananciaEstimada.toFixed(2) }}</td>
+              <td>
+                <span class="estado-badge" [class]="'estado-' + r.estado">
+                  {{ r.estado === 'activo' ? '✅ Activo' : r.estado === 'sin_movimiento' ? '⚠️ Sin movimiento' : '❌ Agotado' }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
     <div class="alertas-container" *ngIf="alertasVencimiento.length > 0">
       <h2>⚠️ Alertas de Vencimiento</h2>
       <div class="alertas-list">
@@ -83,8 +160,11 @@
           <tr *ngFor="let p of productos">
             <td>{{ p.nombre }}</td>
             <td><span class="badge">{{ p.categoria }}</span></td>
-            <td [class.low]="p.stock < 50">{{ p.stock }}</td>
-            <td>${{ p.precio }}</td>
+            <td [class.low]="p.stock < (p.stockMinimo || 50)">{{ p.stock }}</td>
+            <td>
+              <span *ngIf="p.enPromocion" class="precio-promo">${{ (p.precio * (1 - p.descuento/100)).toFixed(2) }}</span>
+              <span [class.tachado]="p.enPromocion">${{ p.precio }}</span>
+            </td>
             <td>{{ p.lote }}</td>
             <td>{{ p.fechaCaducidad }}</td>
           </tr>

@@ -231,3 +231,43 @@ td.low { color: #e63946; font-weight: bold; }
   font-size: 1.1rem;
   margin-bottom: 20px;
 }
+.analisis-container {
+  background: white;
+  padding: 25px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  margin-bottom: 30px;
+  animation: fadeInUp 0.5s ease;
+}
+.analisis-container h2 { color: #264653; margin-bottom: 20px; font-size: 1.2rem; }
+.analisis-cards { display: flex; gap: 15px; flex-wrap: wrap; }
+.analisis-card {
+  flex: 1; min-width: 140px; padding: 18px;
+  border-radius: 12px; text-align: center;
+  border-top: 4px solid #2a9d8f;
+}
+.analisis-card h4 { font-size: 0.8rem; color: #555; margin: 0 0 8px; }
+.analisis-card p { font-size: 1.5rem; font-weight: 800; color: #264653; margin: 0 0 5px; }
+.analisis-card small { font-size: 0.7rem; color: #888; }
+.analisis-card.invertido { background: #e8f5f3; border-top-color: #2a9d8f; }
+.analisis-card.potencial { background: #e3f2fd; border-top-color: #2196f3; }
+.analisis-card.ganancia { background: #e8f5e9; border-top-color: #27ae60; }
+.analisis-card.sin-movimiento { background: #fff3cd; border-top-color: #f4a261; }
+.analisis-card.agotado { background: #ffeaea; border-top-color: #e63946; }
+.analisis-card.promo { background: #ffeaa7; border-top-color: #fdcb6e; }
+.rotacion-container {
+  background: white;
+  padding: 25px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  margin-bottom: 30px;
+}
+.rotacion-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+.rotacion-header h2 { color: #264653; font-size: 1.2rem; margin: 0; }
+.btn-toggle { padding: 8px 16px; background: #264653; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
+.estado-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+.estado-activo { background: #e8f5e9; color: #27ae60; }
+.estado-sin_movimiento { background: #fff3cd; color: #f4a261; }
+.estado-agotado { background: #ffeaea; color: #e63946; }
+.precio-promo { color: #2a9d8f; font-weight: 800; margin-right: 5px; }
+.tachado { text-decoration: line-through; color: #aaa; font-size: 0.85rem; }
