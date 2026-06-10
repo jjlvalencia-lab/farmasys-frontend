@@ -3,13 +3,11 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { AuthService } from '../../services/auth.service';
-import { BaseChartDirective } from 'ng2-charts';
-import { ChartData, ChartOptions } from 'chart.js';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, BaseChartDirective],
+  imports: [CommonModule],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.css']
 })
@@ -24,27 +22,7 @@ export class DashboardComponent implements OnInit {
   analisis: any = null;
   rotacion: any[] = [];
   mostrarRotacion = false;
-
-  barChartData: ChartData<'bar'> = { labels: [], datasets: [] };
-  pieChartData: ChartData<'pie'> = { labels: [], datasets: [] };
-  lineChartData: ChartData<'line'> = { labels: [], datasets: [] };
-
-  barChartOptions: ChartOptions<'bar'> = {
-    responsive: true,
-    plugins: { legend: { display: false } },
-    scales: { y: { beginAtZero: true } }
-  };
-
-  pieChartOptions: ChartOptions<'pie'> = {
-    responsive: true,
-    plugins: { legend: { position: 'bottom' } }
-  };
-
-  lineChartOptions: ChartOptions<'line'> = {
-    responsive: true,
-    plugins: { legend: { display: false } },
-    scales: { y: { beginAtZero: true } }
-  };
+  ultimos7Dias: any[] = [];
 
   constructor(
     private http: HttpClient,
@@ -65,7 +43,6 @@ export class DashboardComponent implements OnInit {
         this.stockBajo = data.filter(p => p.stock < (p.stockMinimo || 50)).length;
         this.sobrestock = data.filter(p => p.stock > (p.stockMaximo || 1000)).length;
         this.calcularAlertas(data);
-        this.generarGraficasProductos(data);
         this.cdr.detectChanges();
       },
       error: (err) => console.error('Error productos:', err)
@@ -116,20 +93,6 @@ export class DashboardComponent implements OnInit {
       .sort((a, b) => a.diasRestantes - b.diasRestantes);
   }
 
-  generarGraficasProductos(data: any[]) {
-    const top10 = [...data].sort((a, b) => b.stock - a.stock).slice(0, 10);
-    this.barChartData = {
-      labels: top10.map(p => p.nombre),
-      datasets: [{ data: top10.map(p => p.stock), backgroundColor: '#2a9d8f', borderRadius: 6 }]
-    };
-    const categorias: any = {};
-    data.forEach(p => { categorias[p.categoria] = (categorias[p.categoria] || 0) + 1; });
-    this.pieChartData = {
-      labels: Object.keys(categorias),
-      datasets: [{ data: Object.values(categorias), backgroundColor: ['#2a9d8f','#264653','#f4a261','#e63946','#e9c46a','#2196f3','#8ecae6'] }]
-    };
-  }
-
   generarGraficaVentas(ventas: any[]) {
     const hoy = new Date();
     const ultimos7: number[] = [];
@@ -139,18 +102,21 @@ export class DashboardComponent implements OnInit {
       fecha.setDate(hoy.getDate() - i);
       const fechaStr = fecha.toISOString().split('T')[0];
       labels.push(fecha.toLocaleDateString('es', { weekday: 'short', day: 'numeric' }));
-      const totalDia = ventas.filter(v => v.fecha.startsWith(fechaStr)).reduce((sum, v) => sum + parseFloat(v.total), 0);
+      const totalDia = ventas
+        .filter(v => v.fecha.startsWith(fechaStr))
+        .reduce((sum, v) => sum + parseFloat(v.total), 0);
       ultimos7.push(totalDia);
     }
-    this.lineChartData = {
-      labels,
-      datasets: [{
-        data: ultimos7, borderColor: '#2a9d8f',
-        backgroundColor: 'rgba(42,157,143,0.1)',
-        fill: true, tension: 0.4,
-        pointBackgroundColor: '#264653', pointRadius: 5
-      }]
-    };
+    const maxVal = Math.max(...ultimos7, 1);
+    this.ultimos7Dias = labels.map((label, i) => ({
+      label,
+      total: ultimos7[i].toFixed(2),
+      porcentaje: Math.round((ultimos7[i] / maxVal) * 100)
+    }));
+  }
+
+  sumarNumeros(sum: number, dia: any): number {
+    return sum + (parseFloat(dia.total) || 0);
   }
 
   irProductos() { this.router.navigate(['/productos']); }

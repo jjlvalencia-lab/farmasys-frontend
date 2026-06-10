@@ -2,7 +2,10 @@
   <nav class="navbar">
     <div class="nav-brand">🏥 FarmaSys — Punto de Venta</div>
     <div class="nav-links">
-      <button (click)="vistaActual = 'nueva'" [class.active]="vistaActual === 'nueva'" class="btn-nav">🛒 Nueva Venta</button>
+      <button (click)="vistaActual = 'nueva'" [class.active]="vistaActual === 'nueva'" class="btn-nav">
+        🛒 Nueva Venta
+        <span *ngIf="totalItemsCarrito > 0" class="badge-carrito">{{ totalItemsCarrito }}</span>
+      </button>
       <button (click)="vistaActual = 'historial'; fechaBuscada = false" [class.active]="vistaActual === 'historial'" class="btn-nav">📋 Historial</button>
       <button (click)="vistaActual = 'cierre'; cargarCierre()" [class.active]="vistaActual === 'cierre'" class="btn-nav">🗃️ Cierre de Caja</button>
       <button (click)="volver()" class="btn-back">← Volver</button>
@@ -38,8 +41,14 @@
             <div *ngIf="!p.imagen" class="producto-emoji">💊</div>
             <div class="producto-nombre">{{ p.nombre }}</div>
             <div class="producto-categoria">{{ p.categoria }}</div>
-            <div class="producto-precio">${{ p.precio }} / unidad</div>
-            <div *ngIf="p.unidadesPorCaja > 1" class="producto-precio-caja">${{ p.precioCaja }} / caja ({{ p.unidadesPorCaja }} und)</div>
+            <div class="producto-precio">
+              <span *ngIf="p.enPromocion" class="precio-tachado">${{ p.precio }}</span>
+              <span [class.precio-promo]="p.enPromocion">${{ p.enPromocion ? (p.precio * (1 - p.descuento/100)).toFixed(2) : p.precio }}</span>
+              <span class="precio-label"> / unidad</span>
+            </div>
+            <div *ngIf="p.unidadesPorCaja > 1" class="producto-precio-caja">
+              ${{ p.precioCaja }} / caja ({{ p.unidadesPorCaja }} und)
+            </div>
             <div class="producto-stock" [class.low]="p.stock < 10">Stock: {{ p.stock }}</div>
             <div class="producto-btns">
               <button (click)="agregarAlCarrito(p, 'unidad')" class="btn-add-unidad">+ Unidad</button>
@@ -50,7 +59,10 @@
       </div>
 
       <div class="panel-carrito">
-        <h2>🛒 Carrito de Compra</h2>
+        <h2>
+          🛒 Carrito
+          <span *ngIf="totalItemsCarrito > 0" class="badge-carrito-titulo">{{ totalItemsCarrito }}</span>
+        </h2>
         <div class="carrito-vacio" *ngIf="carrito.length === 0">
           <p>Selecciona un producto para comenzar</p>
         </div>
@@ -159,13 +171,14 @@
       <div class="historial-filtros">
         <input type="date" [(ngModel)]="fechaHistorial" class="input-fecha"/>
         <button (click)="buscarVentasPorFecha()" class="btn-buscar-fecha">🔍 Buscar</button>
+        <button *ngIf="ventasPorFecha.length > 0" (click)="exportarVentasPorFecha()" class="btn-exportar-fecha">📥 Exportar Excel</button>
       </div>
     </div>
 
     <div *ngIf="fechaBuscada">
       <div class="resumen-fecha" *ngIf="ventasPorFecha.length > 0">
         <span>📅 {{ fechaHistorial }} — <strong>{{ ventasPorFecha.length }} ventas</strong></span>
-        <span>Total: <strong style="color:#2a9d8f">${{ ventasPorFecha.reduce(getTotalVentas, 0) }}</strong></span>
+        <span>Total: <strong style="color:#2a9d8f">${{ ventasPorFecha.reduce(getTotalVentas, 0).toFixed(2) }}</strong></span>
       </div>
       <table *ngIf="ventasPorFecha.length > 0">
         <thead>

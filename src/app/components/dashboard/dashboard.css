@@ -271,3 +271,74 @@ td.low { color: #e63946; font-weight: bold; }
 .estado-agotado { background: #ffeaea; color: #e63946; }
 .precio-promo { color: #2a9d8f; font-weight: 800; margin-right: 5px; }
 .tachado { text-decoration: line-through; color: #aaa; font-size: 0.85rem; }
+.ventas-semana-container {
+  background: white;
+  padding: 20px 25px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  margin-bottom: 25px;
+}
+
+.ventas-semana-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.ventas-semana-header h2 { color: #264653; font-size: 1.1rem; margin: 0; }
+
+.total-semana {
+  background: linear-gradient(135deg, #2a9d8f, #264653);
+  color: white;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.mini-barras {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  height: 80px;
+}
+
+.mini-barra-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  height: 100%;
+}
+
+.mini-barra-wrap {
+  flex: 1;
+  width: 100%;
+  background: #f0f4f8;
+  border-radius: 6px;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+
+.mini-barra-fill {
+  width: 100%;
+  background: linear-gradient(to top, #2a9d8f, #80cdc7);
+  border-radius: 6px;
+  transition: height 0.5s ease;
+  min-height: 4px;
+}
+
+.mini-barra-label {
+  font-size: 0.7rem;
+  color: #888;
+  white-space: nowrap;
+}
+
+.mini-barra-monto {
+  font-size: 0.65rem;
+  color: #264653;
+  font-weight: 600;
+}

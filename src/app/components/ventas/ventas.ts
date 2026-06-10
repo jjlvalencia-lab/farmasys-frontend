@@ -35,12 +35,10 @@ export class VentasComponent implements OnInit {
   cajero: string = localStorage.getItem('username') || '';
   mostrarSelectorCajero: boolean = false;
 
-  // Historial por fecha
   fechaHistorial: string = new Date().toISOString().split('T')[0];
   ventasPorFecha: any[] = [];
   fechaBuscada: boolean = false;
 
-  // Cierre de caja
   mostrarCierre: boolean = false;
   fechaCierre: string = new Date().toISOString().split('T')[0];
   cierreData: any = null;
@@ -77,6 +75,11 @@ export class VentasComponent implements OnInit {
     localStorage.setItem('carrito_farmasys', JSON.stringify(this.carrito));
   }
 
+  // Total de items en el carrito para el badge
+  get totalItemsCarrito(): number {
+    return this.carrito.reduce((sum, item) => sum + item.cantidad, 0);
+  }
+
   cargarProductos() {
     const token = localStorage.getItem('token');
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
@@ -107,26 +110,29 @@ export class VentasComponent implements OnInit {
     const existente = this.carrito.find(c => c.key === key);
     const precio = tipo === 'caja' ? parseFloat(producto.precioCaja) : parseFloat(producto.precio);
     const unidades = tipo === 'caja' ? producto.unidadesPorCaja : 1;
+    const stockDisponible = Math.floor(producto.stock / unidades);
 
     if (existente) {
       const totalUnidades = (existente.cantidad + 1) * unidades;
       if (totalUnidades > producto.stock) {
-        alert(`Stock insuficiente`);
+        alert(`Stock insuficiente. Máximo: ${stockDisponible}`);
         return;
       }
       existente.cantidad++;
-      existente.subtotal = existente.cantidad * precio;
+      existente.subtotal = +(existente.cantidad * precio).toFixed(2);
     } else {
       this.carrito.push({
         key,
         productoId: producto.id,
-        nombreProducto: `${producto.nombre}${tipo === 'caja' ? ' (Caja)' : ''}`,
+        nombreProducto: tipo === 'caja'
+          ? `${producto.nombre} (Caja x${producto.unidadesPorCaja})`
+          : producto.nombre,
         tipo,
         unidadesPorCaja: unidades,
         cantidad: 1,
         precioUnitario: precio,
         subtotal: precio,
-        stockDisponible: Math.floor(producto.stock / unidades)
+        stockDisponible
       });
     }
     this.guardarCarrito();
@@ -139,11 +145,11 @@ export class VentasComponent implements OnInit {
       return;
     }
     if (cantidad > item.stockDisponible) {
-      alert(`Stock maximo: ${item.stockDisponible}`);
+      alert(`Stock máximo disponible: ${item.stockDisponible}`);
       return;
     }
     item.cantidad = cantidad;
-    item.subtotal = cantidad * item.precioUnitario;
+    item.subtotal = +(cantidad * item.precioUnitario).toFixed(2);
     this.guardarCarrito();
     this.cdr.detectChanges();
   }
@@ -156,11 +162,11 @@ export class VentasComponent implements OnInit {
 
   get total(): number {
     const subtotal = this.carrito.reduce((sum, item) => sum + item.subtotal, 0);
-    return subtotal + (this.recargoPago || 0);
+    return +(subtotal + (this.recargoPago || 0)).toFixed(2);
   }
 
   get cambio(): number {
-    return this.efectivoRecibido - this.total;
+    return +(this.efectivoRecibido - this.total).toFixed(2);
   }
 
   procesarVenta() {
@@ -230,6 +236,26 @@ export class VentasComponent implements OnInit {
     });
   }
 
+  exportarVentasPorFecha() {
+    if (!this.ventasPorFecha.length) return;
+    import('xlsx').then(XLSX => {
+      const datos = this.ventasPorFecha.map(v => ({
+        '#': v.id,
+        'Hora': new Date(v.fecha).toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' }),
+        'Total': v.total,
+        'Método Pago': v.metodoPago,
+        'Entidad': v.entidadFinanciera || '-',
+        'Cliente': v.tipoCliente === 'con_datos' ? v.clienteNombre : 'Consumidor Final',
+        'Cajero': v.cajero || '-',
+        'Productos': v.detalles?.length || 0
+      }));
+      const hoja = XLSX.utils.json_to_sheet(datos);
+      const libro = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(libro, hoja, `Ventas ${this.fechaHistorial}`);
+      XLSX.writeFile(libro, `ventas-${this.fechaHistorial}.xlsx`);
+    });
+  }
+
   cargarCierre() {
     const token = localStorage.getItem('token');
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
@@ -243,7 +269,7 @@ export class VentasComponent implements OnInit {
 
   get diferenciaCaja(): number {
     if (!this.cierreData) return 0;
-    return this.efectivoCajero - parseFloat(this.cierreData.totalEfectivo);
+    return +(this.efectivoCajero - parseFloat(this.cierreData.totalEfectivo)).toFixed(2);
   }
 
   cerrarRecibo() { this.mostrarRecibo = 'none'; this.ventaActual = null; }
@@ -251,6 +277,6 @@ export class VentasComponent implements OnInit {
   volver() { this.router.navigate(['/dashboard']); }
 
   getTotalVentas(sum: number, v: any): number {
-  return sum + parseFloat(v.total);
- }
+    return sum + parseFloat(v.total);
+  }
 }

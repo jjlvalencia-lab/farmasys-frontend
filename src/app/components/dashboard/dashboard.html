@@ -11,6 +11,7 @@
   <div class="content">
     <h1>Panel de Control</h1>
 
+    <!-- TARJETAS RESUMEN -->
     <div class="cards">
       <div class="card">
         <h3>Total Productos</h3>
@@ -34,7 +35,24 @@
       </div>
     </div>
 
-    <!-- ANALISIS DE PERDIDA Y GANANCIA -->
+    <!-- VENTAS 7 DÍAS COMPACTO -->
+    <div class="ventas-semana-container">
+      <div class="ventas-semana-header">
+        <h2>📈 Ventas — Últimos 7 días</h2>
+        <span class="total-semana">${{ ultimos7Dias.reduce(sumarNumeros, 0).toFixed(2) }}</span>
+      </div>
+      <div class="mini-barras">
+        <div class="mini-barra-item" *ngFor="let dia of ultimos7Dias">
+          <div class="mini-barra-wrap">
+            <div class="mini-barra-fill" [style.height.%]="dia.porcentaje" [title]="'$' + dia.total"></div>
+          </div>
+          <span class="mini-barra-label">{{ dia.label }}</span>
+          <span class="mini-barra-monto">${{ dia.total }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ANALISIS DE INVENTARIO -->
     <div class="analisis-container" *ngIf="analisis && rol === 'admin'">
       <h2>📊 Analisis de Inventario</h2>
       <div class="analisis-cards">
@@ -51,7 +69,7 @@
         <div class="analisis-card ganancia">
           <h4>✅ Ganancia Estimada</h4>
           <p>${{ analisis.gananciaEstimada }}</p>
-          <small>Diferencia entre costo y venta</small>
+          <small>Margen: {{ analisis.margenPromedio }}</small>
         </div>
         <div class="analisis-card sin-movimiento">
           <h4>⚠️ Sin Movimiento</h4>
@@ -86,9 +104,10 @@
               <th>Producto</th>
               <th>Categoria</th>
               <th>Stock</th>
+              <th>Total Vendido</th>
+              <th>Ingreso Generado</th>
               <th>Dias en Inventario</th>
-              <th>Valor en Bodega</th>
-              <th>Ganancia Estimada</th>
+              <th>Velocidad Venta</th>
               <th>Estado</th>
             </tr>
           </thead>
@@ -97,9 +116,10 @@
               <td>{{ r.nombre }}</td>
               <td><span class="badge">{{ r.categoria }}</span></td>
               <td>{{ r.stock }}</td>
+              <td>{{ r.totalVendido }} und</td>
+              <td>${{ r.ingresoGenerado }}</td>
               <td>{{ r.diasEnInventario }} dias</td>
-              <td>${{ r.valorInventario.toFixed(2) }}</td>
-              <td>${{ r.gananciaEstimada.toFixed(2) }}</td>
+              <td>{{ r.velocidadVenta }} und/dia</td>
               <td>
                 <span class="estado-badge" [class]="'estado-' + r.estado">
                   {{ r.estado === 'activo' ? '✅ Activo' : r.estado === 'sin_movimiento' ? '⚠️ Sin movimiento' : '❌ Agotado' }}
@@ -111,6 +131,7 @@
       </div>
     </div>
 
+    <!-- ALERTAS DE VENCIMIENTO -->
     <div class="alertas-container" *ngIf="alertasVencimiento.length > 0">
       <h2>⚠️ Alertas de Vencimiento</h2>
       <div class="alertas-list">
@@ -127,22 +148,7 @@
       </div>
     </div>
 
-    <div class="graficas-container">
-      <div class="grafica-box">
-        <h2>📊 Top 10 Productos por Stock</h2>
-        <canvas baseChart [data]="barChartData" [options]="barChartOptions" type="bar"></canvas>
-      </div>
-      <div class="grafica-box">
-        <h2>🥧 Distribucion por Categoria</h2>
-        <canvas baseChart [data]="pieChartData" [options]="pieChartOptions" type="pie"></canvas>
-      </div>
-    </div>
-
-    <div class="grafica-ventas">
-      <h2>📈 Ventas de los Ultimos 7 Dias</h2>
-      <canvas baseChart [data]="lineChartData" [options]="lineChartOptions" type="line"></canvas>
-    </div>
-
+    <!-- TABLA DE INVENTARIO -->
     <div class="table-container">
       <h2>Productos en Inventario</h2>
       <table>
@@ -172,5 +178,6 @@
       </table>
       <p *ngIf="productos.length === 0">No hay productos aun.</p>
     </div>
+
   </div>
 </div>
