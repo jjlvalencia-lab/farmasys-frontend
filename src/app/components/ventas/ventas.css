@@ -477,3 +477,26 @@ tr:hover td { background: #f8fdfc; }
 }
 
 .precio-promo { color: #e63946; font-weight: 700; }
+
+@media (max-width: 768px) {
+  .navbar { padding: 10px 15px; flex-wrap: wrap; gap: 8px; }
+  .nav-brand { font-size: 1rem; }
+  .nav-links { flex-wrap: wrap; gap: 6px; }
+  .btn-nav, .btn-back { padding: 6px 10px; font-size: 0.78rem; }
+  .content { padding: 12px; }
+  .pos-layout { flex-direction: column; }
+  .panel-productos { width: 100%; }
+  .panel-carrito { width: 100%; }
+  .productos-grid { grid-template-columns: repeat(2, 1fr); }
+  .metodos-pago { flex-wrap: wrap; }
+  .btn-metodo { font-size: 0.8rem; padding: 7px 10px; }
+  .cierre-cards { grid-template-columns: repeat(2, 1fr); }
+  .historial-filtros { flex-direction: column; }
+}
+
+@media (max-width: 480px) {
+  .productos-grid { grid-template-columns: 1fr; }
+  .cierre-cards { grid-template-columns: 1fr; }
+  .tipo-cliente-btns { flex-direction: column; }
+  .carrito-item { flex-direction: column; align-items: flex-start; gap: 8px; }
+}
