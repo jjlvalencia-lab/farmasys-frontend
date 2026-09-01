@@ -2,12 +2,16 @@
   <nav class="navbar">
     <div class="nav-brand">🏥 FarmaSys</div>
     <div class="nav-links">
-      <button (click)="irProductos()" class="btn-nav">📦 Productos</button>
-      <button (click)="logout()" class="btn-logout">Cerrar Sesión</button>
+      <button (click)="irProductos()" class="btn-nav">📦 {{ rol === 'admin' ? 'Productos' : 'Ver Inventario' }}</button>
+      <button (click)="irVentas()" class="btn-nav">🛒 Ventas</button>
+      <button (click)="logout()" class="btn-logout">Cerrar Sesion</button>
     </div>
   </nav>
+
   <div class="content">
     <h1>Panel de Control</h1>
+
+    <!-- TARJETAS RESUMEN -->
     <div class="cards">
       <div class="card">
         <h3>Total Productos</h3>
@@ -21,13 +25,137 @@
         <h3>Sobrestock</h3>
         <p class="number">{{ sobrestock }}</p>
       </div>
+      <div class="card alert">
+        <h3>Por Vencer</h3>
+        <p class="number">{{ alertasVencimiento.length }}</p>
+      </div>
+      <div class="card ventas">
+        <h3>Total Vendido</h3>
+        <p class="number">${{ totalVentas.toFixed(2) }}</p>
+      </div>
     </div>
+
+    <!-- VENTAS 7 DÍAS COMPACTO -->
+    <div class="ventas-semana-container">
+      <div class="ventas-semana-header">
+        <h2>📈 Ventas — Últimos 7 días</h2>
+        <span class="total-semana">${{ ultimos7Dias.reduce(sumarNumeros, 0).toFixed(2) }}</span>
+      </div>
+      <div class="mini-barras">
+        <div class="mini-barra-item" *ngFor="let dia of ultimos7Dias">
+          <div class="mini-barra-wrap">
+            <div class="mini-barra-fill" [style.height.%]="dia.porcentaje" [title]="'$' + dia.total"></div>
+          </div>
+          <span class="mini-barra-label">{{ dia.label }}</span>
+          <span class="mini-barra-monto">${{ dia.total }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ANALISIS DE INVENTARIO -->
+    <div class="analisis-container" *ngIf="analisis && rol === 'admin'">
+      <h2>📊 Analisis de Inventario</h2>
+      <div class="analisis-cards">
+        <div class="analisis-card invertido">
+          <h4>💰 Total Invertido</h4>
+          <p>${{ analisis.totalInvertido }}</p>
+          <small>Costo total del inventario actual</small>
+        </div>
+        <div class="analisis-card potencial">
+          <h4>📈 Venta Potencial</h4>
+          <p>${{ analisis.valorVentaPotencial }}</p>
+          <small>Si se vende todo el inventario</small>
+        </div>
+        <div class="analisis-card ganancia">
+          <h4>✅ Ganancia Estimada</h4>
+          <p>${{ analisis.gananciaEstimada }}</p>
+          <small>Margen: {{ analisis.margenPromedio }}</small>
+        </div>
+        <div class="analisis-card sin-movimiento">
+          <h4>⚠️ Sin Movimiento</h4>
+          <p>{{ analisis.productosSinMovimiento }}</p>
+          <small>Productos sin vender en 30+ dias</small>
+        </div>
+        <div class="analisis-card agotado">
+          <h4>❌ Agotados</h4>
+          <p>{{ analisis.productosAgotados }}</p>
+          <small>Productos con stock 0</small>
+        </div>
+        <div class="analisis-card promo">
+          <h4>🏷️ En Promocion</h4>
+          <p>{{ analisis.enPromocion }}</p>
+          <small>Productos con descuento activo</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROTACION DE PRODUCTOS -->
+    <div class="rotacion-container" *ngIf="rol === 'admin'">
+      <div class="rotacion-header">
+        <h2>🔄 Rotacion de Productos</h2>
+        <button (click)="mostrarRotacion = !mostrarRotacion" class="btn-toggle">
+          {{ mostrarRotacion ? 'Ocultar' : 'Ver detalle' }}
+        </button>
+      </div>
+      <div *ngIf="mostrarRotacion">
+        <table>
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th>Categoria</th>
+              <th>Stock</th>
+              <th>Total Vendido</th>
+              <th>Ingreso Generado</th>
+              <th>Dias en Inventario</th>
+              <th>Velocidad Venta</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let r of rotacion">
+              <td>{{ r.nombre }}</td>
+              <td><span class="badge">{{ r.categoria }}</span></td>
+              <td>{{ r.stock }}</td>
+              <td>{{ r.totalVendido }} und</td>
+              <td>${{ r.ingresoGenerado }}</td>
+              <td>{{ r.diasEnInventario }} dias</td>
+              <td>{{ r.velocidadVenta }} und/dia</td>
+              <td>
+                <span class="estado-badge" [class]="'estado-' + r.estado">
+                  {{ r.estado === 'activo' ? '✅ Activo' : r.estado === 'sin_movimiento' ? '⚠️ Sin movimiento' : '❌ Agotado' }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ALERTAS DE VENCIMIENTO -->
+    <div class="alertas-container" *ngIf="alertasVencimiento.length > 0">
+      <h2>⚠️ Alertas de Vencimiento</h2>
+      <div class="alertas-list">
+        <div class="alerta-item" *ngFor="let a of alertasVencimiento" [class]="'alerta-' + a.nivel">
+          <div class="alerta-info">
+            <strong>{{ a.nombre }}</strong>
+            <span>Lote: {{ a.lote }} | Categoria: {{ a.categoria }}</span>
+          </div>
+          <div class="alerta-dias">
+            <span class="dias-numero">{{ a.diasRestantes }}</span>
+            <span class="dias-texto">dias</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABLA DE INVENTARIO -->
     <div class="table-container">
       <h2>Productos en Inventario</h2>
       <table>
         <thead>
           <tr>
             <th>Nombre</th>
+            <th>Categoria</th>
             <th>Stock</th>
             <th>Precio</th>
             <th>Lote</th>
@@ -37,14 +165,19 @@
         <tbody>
           <tr *ngFor="let p of productos">
             <td>{{ p.nombre }}</td>
-            <td [class.low]="p.stock < 50">{{ p.stock }}</td>
-            <td>${{ p.precio }}</td>
+            <td><span class="badge">{{ p.categoria }}</span></td>
+            <td [class.low]="p.stock < (p.stockMinimo || 50)">{{ p.stock }}</td>
+            <td>
+              <span *ngIf="p.enPromocion" class="precio-promo">${{ (p.precio * (1 - p.descuento/100)).toFixed(2) }}</span>
+              <span [class.tachado]="p.enPromocion">${{ p.precio }}</span>
+            </td>
             <td>{{ p.lote }}</td>
             <td>{{ p.fechaCaducidad }}</td>
           </tr>
         </tbody>
       </table>
-      <p *ngIf="productos.length === 0">No hay productos aún.</p>
+      <p *ngIf="productos.length === 0">No hay productos aun.</p>
     </div>
+
   </div>
 </div>

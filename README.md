@@ -1,59 +1,99 @@
-# FarmasysFrontend
+# FarmaSys — Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.12.
+Aplicación web desarrollada con **Angular** para el sistema de gestión de inventario FarmaSys.
 
-## Development server
+## 🛠️ Tecnologías
 
-To start a local development server, run:
+- Angular 17+
+- TypeScript
+- Chart.js / ng2-charts
+- XLSX (exportación Excel)
+- jsPDF (exportación PDF)
 
+## ⚙️ Requisitos previos
+
+- Node.js v18+
+- Angular CLI
+- npm
+
+## 🚀 Instalación
+
+1. Clona el repositorio:
 ```bash
-ng serve
+   git clone https://github.com/jjlvalencia-lab/farmasys-frontend.git
+   cd farmasys-frontend
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
+2. Instala dependencias:
 ```bash
-ng generate component component-name
+   npm install
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
+3. Inicia la aplicación:
 ```bash
-ng generate --help
+   ng serve
 ```
 
-## Building
+La aplicación corre en `http://localhost:4200`
 
-To build the project run:
+> ⚠️ Asegúrate de tener el backend corriendo en `http://localhost:3000`
 
-```bash
-ng build
+## 📱 Módulos del sistema
+
+### 🔐 Login
+- Autenticación con JWT
+- Fondo animado con gradiente
+- Efecto shake en credenciales incorrectas
+- Mostrar/ocultar contraseña
+
+### 📊 Dashboard
+- Tarjetas resumen del inventario
+- Gráfica compacta de ventas últimos 7 días
+- Análisis de inventario (inversión, ganancia estimada, margen)
+- Rotación de productos con estado activo/sin movimiento/agotado
+- Alertas de vencimiento por colores (crítico, urgente, próximo)
+
+### 📦 Productos
+- Gestión completa de inventario (CRUD)
+- Búsqueda en tiempo real por nombre, lote y fecha
+- Filtro por categorías
+- Registro con precio de costo, venta y precio por caja
+- Límites de stock mínimo y máximo configurables
+- Promociones y descuentos por fechas
+- Subida de imagen por producto
+- Exportación avanzada: Excel, PDF, agotados, stock bajo, por vencer, promociones, ventas del día
+- Importación masiva desde Excel
+
+### 🛒 Ventas
+- Punto de venta con carrito persistente
+- Venta por unidad o caja
+- Métodos de pago: efectivo, tarjeta, transferencia, QR
+- Datos del cliente (consumidor final o con datos)
+- Recibo imprimible
+- Historial de ventas por fecha con exportación a Excel
+- Cierre de caja con cuadre de efectivo
+
+## 👥 Roles de usuario
+
+| Funcionalidad | Admin | Empleado |
+|---------------|-------|----------|
+| Ver inventario | ✅ | ✅ |
+| Agregar/editar/eliminar productos | ✅ | ❌ |
+| Registrar ventas | ✅ | ✅ |
+| Ver historial de ventas | ✅ | ✅ |
+| Ver dashboard completo | ✅ | ✅ |
+| Análisis y rotación | ✅ | ❌ |
+| Exportar reportes | ✅ | ❌ |
+
+## 📁 Estructura del proyecto
+
 ```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
+src/app/
+├── components/
+│   ├── login/       # Pantalla de inicio de sesión
+│   ├── dashboard/   # Panel de control
+│   ├── productos/   # Gestión de inventario
+│   └── ventas/      # Punto de venta
+├── services/        # Servicios HTTP y autenticación
+└── guards/          # Protección de rutas por rol
 ```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
