@@ -107,16 +107,45 @@ export class ProductosComponent implements OnInit {
   }
 
   onImagenSeleccionada(event: any) {
-    const archivo = event.target.files[0];
-    if (!archivo) return;
-    const reader = new FileReader();
-    reader.onload = (e: any) => {
-      this.imagenPreview = e.target.result;
-      this.productoActual.imagen = e.target.result;
-      this.cdr.detectChanges();
-    };
-    reader.readAsDataURL(archivo);
+  const archivo = event.target.files[0];
+  if (!archivo) return;
+
+  // Preview local inmediato
+  const reader = new FileReader();
+  reader.onload = (e: any) => {
+    this.imagenPreview = e.target.result;
+    this.cdr.detectChanges();
+  };
+  reader.readAsDataURL(archivo);
+
+  // Subir a Cloudinary si el producto ya existe
+  if (this.editando && this.productoActual.id) {
+    this.subirImagenCloudinary(archivo, this.productoActual.id);
+  } else {
+    // Guardar archivo temporalmente para subir después de crear
+    this.archivoImagenPendiente = archivo;
   }
+}
+
+archivoImagenPendiente: File | null = null;
+
+subirImagenCloudinary(archivo: File, productoId: number) {
+  const token = localStorage.getItem('token');
+  const formData = new FormData();
+  formData.append('imagen', archivo);
+
+  this.http.post<{ imagenUrl: string }>(
+    `http://localhost:3000/productos/${productoId}/imagen`,
+    formData,
+    { headers: { 'Authorization': `Bearer ${token}` } }
+  ).subscribe({
+    next: (res) => {
+      this.productoActual.imagenUrl = res.imagenUrl;
+      this.cdr.detectChanges();
+    },
+    error: (err) => console.error('Error subiendo imagen:', err)
+  });
+}
 
   calcularPrecioCaja() {
     if (this.productoActual.unidadesPorCaja > 1 && this.productoActual.precio > 0) {
@@ -125,22 +154,32 @@ export class ProductosComponent implements OnInit {
   }
 
   guardar() {
-    const token = localStorage.getItem('token');
-    const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
-    if (this.editando) {
-      this.http.put(`http://localhost:3000/productos/${this.productoActual.id}`, this.productoActual, { headers }).subscribe(() => {
+  const token = localStorage.getItem('token');
+  const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+  if (this.editando) {
+    this.http.put(
+      `http://localhost:3000/productos/${this.productoActual.id}`,
+      this.productoActual, { headers }
+    ).subscribe(() => {
+      this.cargarProductos();
+      this.mostrarFormulario = false;
+      this.imagenPreview = '';
+      this.archivoImagenPendiente = null;
+    });
+  } else {
+    this.http.post('http://localhost:3000/productos', this.productoActual, { headers })
+      .subscribe((nuevoProducto: any) => {
+        // Si hay imagen pendiente la subimos ahora que tenemos el ID
+        if (this.archivoImagenPendiente) {
+          this.subirImagenCloudinary(this.archivoImagenPendiente, nuevoProducto.id);
+          this.archivoImagenPendiente = null;
+        }
         this.cargarProductos();
         this.mostrarFormulario = false;
         this.imagenPreview = '';
       });
-    } else {
-      this.http.post('http://localhost:3000/productos', this.productoActual, { headers }).subscribe(() => {
-        this.cargarProductos();
-        this.mostrarFormulario = false;
-        this.imagenPreview = '';
-      });
-    }
   }
+}
 
   eliminar(id: number) {
     if (confirm('Estas seguro de eliminar este producto?')) {
