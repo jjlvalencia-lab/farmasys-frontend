@@ -1,30 +1,40 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
+import { Producto } from '../models/producto.model';
 
 @Injectable({ providedIn: 'root' })
 export class ProductosService {
-  private apiUrl = 'http://localhost:3000/productos';
+  private apiUrl = `${environment.apiUrl}/productos`;
 
   constructor(private http: HttpClient) {}
 
-  getAll(): Observable<any[]> {
-  return this.http.get<any[]>(`${this.apiUrl}?t=${Date.now()}`);
-}
-
-  getOne(id: number): Observable<any> {
-    return this.http.get(`${this.apiUrl}/${id}`);
+  getAll(): Observable<Producto[]> {
+    return this.http.get<Producto[]>(`${this.apiUrl}?t=${Date.now()}`);
   }
 
-  create(producto: any): Observable<any> {
-    return this.http.post(this.apiUrl, producto);
+  getOne(id: number): Observable<Producto> {
+    return this.http.get<Producto>(`${this.apiUrl}/${id}`);
   }
 
-  update(id: number, producto: any): Observable<any> {
-    return this.http.put(`${this.apiUrl}/${id}`, producto);
+  create(producto: Partial<Producto>): Observable<Producto> {
+    return this.http.post<Producto>(this.apiUrl, producto);
   }
 
-  delete(id: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${id}`);
+  update(id: number, producto: Partial<Producto>): Observable<Producto> {
+    return this.http.put<Producto>(`${this.apiUrl}/${id}`, producto);
+  }
+
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  getAnalisis(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/analisis?t=${Date.now()}`);
+  }
+
+  getRotacion(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/rotacion?t=${Date.now()}`);
   }
 }

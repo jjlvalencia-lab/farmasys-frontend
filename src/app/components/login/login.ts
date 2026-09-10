@@ -17,26 +17,38 @@ export class LoginComponent {
   error = '';
   mostrarPassword = false;
   shake = false;
+  cargando = false;
 
   constructor(private authService: AuthService, private router: Router) {}
 
   login() {
+    if (!this.username.trim() || !this.password.trim()) {
+      this.error = 'Por favor ingresa usuario y contraseña';
+      this.triggerShake();
+      return;
+    }
+    this.cargando = true;
+    this.error = '';
     this.authService.login(this.username, this.password).subscribe({
-      next: (res) => {
-        localStorage.setItem('token', res.access_token);
-        const payload = JSON.parse(atob(res.access_token.split('.')[1]));
-        localStorage.setItem('rol', payload.rol);
+      next: () => {
+        this.cargando = false;
         this.router.navigate(['/dashboard']);
       },
-      error: () => {
-        this.error = 'Usuario o contraseña incorrectos';
-        this.shake = true;
-        setTimeout(() => this.shake = false, 600);
+      error: (err) => {
+        this.cargando = false;
+        this.error = err.error?.message || 'Usuario o contraseña incorrectos';
+        this.triggerShake();
       }
     });
+  }
+
+  triggerShake() {
+    this.shake = true;
+    setTimeout(() => this.shake = false, 600);
   }
 
   togglePassword() {
     this.mostrarPassword = !this.mostrarPassword;
   }
 }
+

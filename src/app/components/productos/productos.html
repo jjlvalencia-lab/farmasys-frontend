@@ -91,9 +91,9 @@
           <div class="form-group">
             <label>Imagen del Producto</label>
             <input type="file" accept="image/*" (change)="onImagenSeleccionada($event)" class="input-file"/>
-            <div class="imagen-preview" *ngIf="imagenPreview">
-              <img [src]="imagenPreview" alt="Vista previa" class="preview-img"/>
-            </div>
+            <div class="imagen-preview" *ngIf="imagenPreview || productoActual.imagenUrl">
+  <img [src]="imagenPreview || productoActual.imagenUrl" alt="Vista previa" class="preview-img"/>
+</div>
           </div>
         </div>
 
@@ -196,8 +196,11 @@
       <tbody>
         <tr *ngFor="let p of productosFiltrados" [class.fila-agotada]="p.stock === 0">
           <td>
-            <img *ngIf="p.imagen" [src]="p.imagen" alt="{{ p.nombre }}" class="tabla-imagen"/>
-            <span *ngIf="!p.imagen" class="sin-imagen">📦</span>
+            <img *ngIf="p.imagenUrl || p.imagen" 
+     [src]="p.imagenUrl || p.imagen" 
+     alt="{{ p.nombre }}" 
+     class="tabla-imagen"/>
+<span *ngIf="!p.imagenUrl && !p.imagen" class="sin-imagen">📦</span>
           </td>
           <td>{{ p.nombre }}</td>
           <td><span class="badge">{{ p.categoria }}</span></td>
