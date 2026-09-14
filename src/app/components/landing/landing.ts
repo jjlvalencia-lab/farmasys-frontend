@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-landing',
@@ -59,5 +60,12 @@ export class LandingComponent {
 
   toggleMenu() {
     this.menuAbierto = !this.menuAbierto;
+  }
+
+  solicitarPlan(nombrePlan: string) {
+    const mensaje = encodeURIComponent(
+      `Hola, me interesa el plan *${nombrePlan}* de FarmaSys. ¿Me pueden dar más información?`
+    );
+    window.open(`https://wa.me/${environment.whatsappNumber}?text=${mensaje}`, '_blank');
   }
 }
