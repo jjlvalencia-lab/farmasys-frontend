@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-login',
@@ -18,6 +19,8 @@ export class LoginComponent {
   mostrarPassword = false;
   shake = false;
   cargando = false;
+  userFocus = false;
+  passFocus = false;
 
   constructor(private authService: AuthService, private router: Router) {}
 
@@ -50,5 +53,13 @@ export class LoginComponent {
   togglePassword() {
     this.mostrarPassword = !this.mostrarPassword;
   }
-}
 
+  irALanding() {
+    this.router.navigate(['/']);
+  }
+
+  irAWhatsApp() {
+    const mensaje = encodeURIComponent('Hola, me interesa contratar FarmaSys. ¿Me pueden dar más información?');
+    window.open(`https://wa.me/${environment.whatsappNumber}?text=${mensaje}`, '_blank');
+  }
+}
