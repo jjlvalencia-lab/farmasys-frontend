@@ -31,6 +31,12 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
+    path: 'pedidos',
+    loadComponent: () =>
+      import('./components/pedidos/pedidos').then(m => m.PedidosComponent),
+    canActivate: [authGuard]
+  },
+  {
     path: '**',
     redirectTo: ''
   }

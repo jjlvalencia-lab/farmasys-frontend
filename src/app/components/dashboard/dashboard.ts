@@ -122,4 +122,5 @@ export class DashboardComponent implements OnInit {
   irProductos() { this.router.navigate(['/productos']); }
   irVentas() { this.router.navigate(['/ventas']); }
   logout() { this.authService.logout(); }
+  irPedidos() { this.router.navigate(['/pedidos']); }
 }

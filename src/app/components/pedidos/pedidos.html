@@ -1,0 +1,189 @@
+<div class="pedidos-page">
+  <nav class="navbar">
+    <div class="nav-brand">🏥 FarmaSys — Pedidos Online</div>
+    <div class="nav-links">
+      <button (click)="vistaActual='nuevo'" *ngIf="vistaActual==='lista'" class="btn-nuevo">+ Nuevo Pedido</button>
+      <button (click)="volver()" class="btn-back">← Volver</button>
+    </div>
+  </nav>
+
+  <!-- LISTA DE PEDIDOS -->
+  <div class="content" *ngIf="vistaActual === 'lista'">
+    <div class="lista-header">
+      <h1>Pedidos Online</h1>
+      <div class="filtros">
+        <button *ngFor="let e of estados"
+          class="btn-filtro"
+          [class.activo]="filtroEstado === e.valor"
+          (click)="filtroEstado = e.valor; filtrar()">
+          {{ e.etiqueta }}
+        </button>
+      </div>
+    </div>
+
+    <div class="pedidos-grid" *ngIf="pedidosFiltrados.length > 0">
+      <div class="pedido-card" *ngFor="let p of pedidosFiltrados">
+        <div class="pedido-header">
+          <div>
+            <span class="pedido-id">#{{ p.id }}</span>
+            <span class="estado-badge estado-{{ p.estado }}">{{ getEtiquetaEstado(p.estado) }}</span>
+          </div>
+          <span class="pedido-fecha">{{ p.fecha | date:'dd/MM HH:mm' }}</span>
+        </div>
+        <div class="pedido-cliente">
+          <strong>{{ p.clienteNombre }}</strong>
+          <span>{{ p.clienteTelefono }}</span>
+          <span *ngIf="p.clienteDireccion">📍 {{ p.clienteDireccion }}</span>
+        </div>
+        <div class="pedido-productos">
+          <div *ngFor="let d of p.detalles" class="detalle-item">
+            <span>{{ d.nombreProducto }} x{{ d.cantidad }}</span>
+            <span>${{ d.subtotal }}</span>
+          </div>
+        </div>
+        <div class="pedido-total">
+          <strong>Total: ${{ p.total }}</strong>
+        </div>
+        <div class="pedido-acciones">
+          <button class="btn-whatsapp" (click)="contactarCliente(p)">
+            💬 WhatsApp
+          </button>
+          <button class="btn-pago" *ngIf="p.estado === 'pendiente_pago'"
+            (click)="abrirModalPago(p)">
+            ✅ Confirmar pago
+          </button>
+          <select class="select-estado" (change)="cambiarEstado(p, $any($event.target).value)"
+            [value]="p.estado" *ngIf="p.estado !== 'cancelado' && p.estado !== 'entregado'">
+            <option value="pendiente_pago">🟡 Pendiente pago</option>
+            <option value="pago_recibido">🔵 Pago recibido</option>
+            <option value="en_preparacion">🟠 En preparación</option>
+            <option value="en_camino">🚴 En camino</option>
+            <option value="entregado">✅ Entregado</option>
+            <option value="cancelado">❌ Cancelado</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="vacio" *ngIf="pedidosFiltrados.length === 0">
+      <p>📋 No hay pedidos en este estado</p>
+      <button class="btn-nuevo-vacio" (click)="vistaActual='nuevo'">+ Crear primer pedido</button>
+    </div>
+  </div>
+
+  <!-- NUEVO PEDIDO -->
+  <div class="content" *ngIf="vistaActual === 'nuevo'">
+    <div class="form-header">
+      <h1>Nuevo Pedido Online</h1>
+      <button class="btn-back-form" (click)="vistaActual='lista'">← Cancelar</button>
+    </div>
+
+    <div class="form-layout">
+      <!-- DATOS DEL CLIENTE -->
+      <div class="form-section">
+        <h2>👤 Datos del cliente</h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Nombre completo *</label>
+            <input [(ngModel)]="clienteNombre" class="input-field" placeholder="Ej: María García"/>
+          </div>
+          <div class="form-group">
+            <label>Teléfono WhatsApp *</label>
+            <input [(ngModel)]="clienteTelefono" class="input-field" placeholder="Ej: 0987654321"/>
+          </div>
+          <div class="form-group">
+            <label>Dirección de entrega</label>
+            <input [(ngModel)]="clienteDireccion" class="input-field" placeholder="Ej: Av. Amazonas y Naciones Unidas"/>
+          </div>
+          <div class="form-group">
+            <label>Referencia del sector</label>
+            <input [(ngModel)]="clienteReferencia" class="input-field" placeholder="Ej: Frente al parque central"/>
+          </div>
+          <div class="form-group full-width">
+            <label>Observaciones</label>
+            <input [(ngModel)]="observacion" class="input-field" placeholder="Notas adicionales del pedido"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRODUCTOS -->
+      <div class="form-section">
+        <h2>📦 Productos del pedido</h2>
+        <input type="text" [(ngModel)]="busquedaProducto"
+          (ngModelChange)="buscarProducto()"
+          placeholder="🔍 Buscar producto..."
+          class="input-busqueda"/>
+
+        <div class="productos-lista">
+          <div class="producto-item" *ngFor="let p of productosFiltrados">
+            <div class="producto-info">
+              <span class="producto-nombre">{{ p.nombre }}</span>
+              <span class="producto-precio">${{ p.precio }}</span>
+              <span class="producto-stock" [class.low]="p.stock < 10">Stock: {{ p.stock }}</span>
+            </div>
+            <button class="btn-agregar" (click)="agregarAlCarrito(p)">+</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARRITO -->
+      <div class="form-section carrito-section">
+        <h2>🛒 Resumen del pedido</h2>
+        <div class="carrito-vacio" *ngIf="carrito.length === 0">
+          <p>Agrega productos para continuar</p>
+        </div>
+        <div *ngIf="carrito.length > 0">
+          <div class="carrito-item" *ngFor="let item of carrito">
+            <div class="item-info">
+              <span>{{ item.nombreProducto }}</span>
+              <span class="item-precio">${{ item.precioUnitario }}/u</span>
+            </div>
+            <div class="item-controls">
+              <button (click)="cambiarCantidad(item, item.cantidad - 1)">-</button>
+              <span>{{ item.cantidad }}</span>
+              <button (click)="cambiarCantidad(item, item.cantidad + 1)">+</button>
+              <span class="item-subtotal">${{ item.subtotal.toFixed(2) }}</span>
+            </div>
+          </div>
+          <div class="carrito-total">
+            <strong>Total del pedido: ${{ totalPedido.toFixed(2) }}</strong>
+          </div>
+          <button class="btn-guardar" (click)="guardarPedido()" [disabled]="cargando">
+            {{ cargando ? 'Guardando...' : '💾 Guardar y enviar por WhatsApp' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CONFIRMAR PAGO -->
+  <div class="modal-overlay" *ngIf="mostrarModalPago">
+    <div class="modal-content">
+      <h2>✅ Confirmar pago</h2>
+      <p class="modal-subtitle">Pedido #{{ pedidoSeleccionado?.id }} — {{ pedidoSeleccionado?.clienteNombre }}</p>
+      <p class="modal-total">Total: <strong>${{ pedidoSeleccionado?.total }}</strong></p>
+
+      <div class="form-group">
+        <label>Banco / Entidad</label>
+        <select [(ngModel)]="bancoPago" class="input-field">
+          <option value="">Seleccionar...</option>
+          <option *ngFor="let b of bancos" [value]="b">{{ b }}</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Referencia de transferencia</label>
+        <input [(ngModel)]="referenciaPago" class="input-field" placeholder="Número de comprobante"/>
+      </div>
+      <div class="form-group">
+        <label>Captura del comprobante (opcional)</label>
+        <input type="file" accept="image/*" (change)="onCapturaSeleccionada($event)" class="input-file"/>
+        <img *ngIf="capturaPago" [src]="capturaPago" class="captura-preview"/>
+      </div>
+
+      <div class="modal-buttons">
+        <button class="btn-confirmar" (click)="confirmarPago()">✅ Confirmar pago</button>
+        <button class="btn-cancelar" (click)="mostrarModalPago=false">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
