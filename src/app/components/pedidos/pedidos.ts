@@ -271,4 +271,6 @@ export class PedidosComponent implements OnInit {
   }
 
   volver() { this.router.navigate(['/dashboard']); }
+
+  irMotoristas() { this.router.navigate(['/motoristas']); }
 }

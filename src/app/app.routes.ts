@@ -37,6 +37,12 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
+    path: 'motoristas',
+    loadComponent: () =>
+      import('./components/motoristas/motoristas').then(m => m.MotoristasComponent),
+    canActivate: [authGuard]
+  },
+  {
     path: '**',
     redirectTo: ''
   }

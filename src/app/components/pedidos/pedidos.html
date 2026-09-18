@@ -1,11 +1,12 @@
 <div class="pedidos-page">
-  <nav class="navbar">
-    <div class="nav-brand">🏥 FarmaSys — Pedidos Online</div>
-    <div class="nav-links">
-      <button (click)="vistaActual='nuevo'" *ngIf="vistaActual==='lista'" class="btn-nuevo">+ Nuevo Pedido</button>
-      <button (click)="volver()" class="btn-back">← Volver</button>
-    </div>
-  </nav>
+ <nav class="navbar">
+  <div class="nav-brand">🏥 FarmaSys — Pedidos Online</div>
+  <div class="nav-links">
+    <button (click)="irMotoristas()" class="btn-motoristas">🚴 Motoristas</button>
+    <button (click)="vistaActual='nuevo'" *ngIf="vistaActual==='lista'" class="btn-nuevo">+ Nuevo Pedido</button>
+    <button (click)="volver()" class="btn-back">← Volver</button>
+  </div>
+</nav>
 
   <!-- LISTA DE PEDIDOS -->
   <div class="content" *ngIf="vistaActual === 'lista'">
