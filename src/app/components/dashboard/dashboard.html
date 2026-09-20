@@ -1,12 +1,13 @@
 <div class="dashboard">
   <nav class="navbar">
-    <div class="nav-brand">🏥 FarmaSys</div>
-    <div class="nav-links">
-      <button (click)="irProductos()" class="btn-nav">📦 {{ rol === 'admin' ? 'Productos' : 'Ver Inventario' }}</button>
-      <button (click)="irVentas()" class="btn-nav">🛒 Ventas</button>
-      <button (click)="logout()" class="btn-logout">Cerrar Sesion</button>
-    </div>
-  </nav>
+  <div class="nav-brand">🏥 FarmaSys</div>
+  <div class="nav-links">
+    <button (click)="irProductos()" class="btn-nav">📦 {{ rol === 'admin' ? 'Productos' : 'Ver Inventario' }}</button>
+    <button (click)="irVentas()" class="btn-nav">🛒 Ventas</button>
+    <button (click)="irPedidos()" class="btn-nav">📋 Pedidos Online</button>
+    <button (click)="logout()" class="btn-logout">Cerrar Sesión</button>
+  </div>
+</nav>
 
   <div class="content">
     <h1>Panel de Control</h1>

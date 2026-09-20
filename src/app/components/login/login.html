@@ -1,42 +1,109 @@
-<div class="login-bg">
-  <div class="login-container" [class.shake]="shake">
-    <div class="login-logo">🏥</div>
-    <h1 class="login-title">FarmaSys</h1>
-    <p class="login-subtitle">Sistema de Gestión de Inventario</p>
-
-    <div class="form-group">
-      <label>Usuario</label>
-      <div class="input-wrapper">
-        <span class="input-icon">👤</span>
-        <input
-          type="text"
-          [(ngModel)]="username"
-          placeholder="Ingresa tu usuario"
-          class="input-field"
-        />
+<div class="login-page">
+  <div class="login-left">
+    <div class="login-left-overlay"></div>
+    <div class="login-left-content">
+      <div class="nav-logo" (click)="irALanding()" style="cursor:pointer">
+        <div class="logo-icon">
+          <svg width="22" height="22" viewBox="0 0 26 26" fill="none">
+            <rect x="11" y="2" width="4" height="22" rx="2" fill="#fff"/>
+            <rect x="2" y="11" width="22" height="4" rx="2" fill="#fff"/>
+            <circle cx="13" cy="13" r="4" fill="#9FE1CB"/>
+          </svg>
+        </div>
+        <span class="logo-text">Farma<span class="logo-accent">Sys</span></span>
+      </div>
+      <div class="left-hero">
+        <h2>Gestiona tu farmacia con inteligencia</h2>
+        <p>Control total de inventario, ventas y reportes desde cualquier dispositivo.</p>
+        <div class="left-features">
+          <div class="left-feature">
+            <div class="left-feature-icon">📦</div>
+            <span>Inventario en tiempo real</span>
+          </div>
+          <div class="left-feature">
+            <div class="left-feature-icon">📊</div>
+            <span>Reportes y análisis</span>
+          </div>
+          <div class="left-feature">
+            <div class="left-feature-icon">☁️</div>
+            <span>100% en la nube</span>
+          </div>
+        </div>
       </div>
     </div>
+  </div>
 
-    <div class="form-group">
-      <label>Contraseña</label>
-      <div class="input-wrapper">
-        <span class="input-icon">🔒</span>
-        <input
-          [type]="mostrarPassword ? 'text' : 'password'"
-          [(ngModel)]="password"
-          placeholder="Ingresa tu contraseña"
-          class="input-field"
-        />
-        <span class="toggle-password" (click)="togglePassword()">
-          {{ mostrarPassword ? '🙈' : '👁️' }}
-        </span>
+  <div class="login-right">
+    <div class="login-form-wrap" [class.shake]="shake">
+      <div class="form-header">
+        <div class="form-logo-mobile">
+          <div class="logo-icon-sm">
+            <svg width="18" height="18" viewBox="0 0 26 26" fill="none">
+              <rect x="11" y="2" width="4" height="22" rx="2" fill="#fff"/>
+              <rect x="2" y="11" width="22" height="4" rx="2" fill="#fff"/>
+              <circle cx="13" cy="13" r="4" fill="#9FE1CB"/>
+            </svg>
+          </div>
+          <span class="logo-text-sm">Farma<span style="color:#1D9E75">Sys</span></span>
+        </div>
+        <h1>Bienvenido</h1>
+        <p>Ingresa tus credenciales para continuar</p>
+      </div>
+
+      <div class="form-group">
+        <label for="username">Usuario</label>
+        <div class="input-wrap" [class.input-focus]="userFocus">
+          <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+          </svg>
+          <input
+            id="username"
+            type="text"
+            [(ngModel)]="username"
+            placeholder="Ingresa tu usuario"
+            (focus)="userFocus=true"
+            (blur)="userFocus=false"
+            (keyup.enter)="login()"
+          />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Contraseña</label>
+        <div class="input-wrap" [class.input-focus]="passFocus">
+          <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          <input
+            id="password"
+            [type]="mostrarPassword ? 'text' : 'password'"
+            [(ngModel)]="password"
+            placeholder="Ingresa tu contraseña"
+            (focus)="passFocus=true"
+            (blur)="passFocus=false"
+            (keyup.enter)="login()"
+          />
+          <button class="toggle-pass" (click)="togglePassword()" type="button">
+            <svg *ngIf="!mostrarPassword" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg *ngIf="mostrarPassword" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="error-msg" *ngIf="error">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        {{ error }}
+      </div>
+
+      <button class="btn-login" (click)="login()" [class.loading]="cargando">
+        <span *ngIf="!cargando">Ingresar</span>
+        <span *ngIf="cargando" class="spinner"></span>
+      </button>
+
+      <div class="login-footer">
+        <span>¿Aún no tienes cuenta?</span>
+        <a (click)="irAWhatsApp()" style="cursor:pointer">Contáctanos</a>
       </div>
     </div>
-
-    <div class="error-msg" *ngIf="error">⚠️ {{ error }}</div>
-
-    <button (click)="login()" class="btn-login">Ingresar</button>
-
-    <p class="login-footer">FarmaSys v1.0 — Todos los derechos reservados</p>
   </div>
 </div>
