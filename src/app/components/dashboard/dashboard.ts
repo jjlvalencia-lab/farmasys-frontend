@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { AuthService } from '../../services/auth.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-dashboard',
@@ -36,7 +37,7 @@ export class DashboardComponent implements OnInit {
     const token = localStorage.getItem('token');
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
 
-    this.http.get<any[]>(`http://localhost:3000/productos?t=${Date.now()}`, { headers }).subscribe({
+    this.http.get<any[]>(`${environment.apiUrl}/productos?t=${Date.now()}`, { headers }).subscribe({
       next: (data) => {
         this.productos = [...data];
         this.totalProductos = data.length;
@@ -48,7 +49,7 @@ export class DashboardComponent implements OnInit {
       error: (err) => console.error('Error productos:', err)
     });
 
-    this.http.get<any[]>(`http://localhost:3000/ventas?t=${Date.now()}`, { headers }).subscribe({
+    this.http.get<any[]>(`${environment.apiUrl}/ventas?t=${Date.now()}`, { headers }).subscribe({
       next: (ventas) => {
         this.totalVentas = ventas.reduce((sum, v) => sum + parseFloat(v.total), 0);
         this.generarGraficaVentas(ventas);
@@ -57,7 +58,7 @@ export class DashboardComponent implements OnInit {
       error: (err) => console.error('Error ventas:', err)
     });
 
-    this.http.get<any>(`http://localhost:3000/productos/analisis?t=${Date.now()}`, { headers }).subscribe({
+    this.http.get<any>(`${environment.apiUrl}/productos/analisis?t=${Date.now()}`, { headers }).subscribe({
       next: (data) => {
         this.analisis = data;
         this.cdr.detectChanges();
@@ -65,7 +66,7 @@ export class DashboardComponent implements OnInit {
       error: (err) => console.error('Error analisis:', err)
     });
 
-    this.http.get<any[]>(`http://localhost:3000/productos/rotacion?t=${Date.now()}`, { headers }).subscribe({
+    this.http.get<any[]>(`${environment.apiUrl}/productos/rotacion?t=${Date.now()}`, { headers }).subscribe({
       next: (data) => {
         this.rotacion = data;
         this.cdr.detectChanges();
@@ -121,6 +122,6 @@ export class DashboardComponent implements OnInit {
 
   irProductos() { this.router.navigate(['/productos']); }
   irVentas() { this.router.navigate(['/ventas']); }
-  logout() { this.authService.logout(); }
   irPedidos() { this.router.navigate(['/pedidos']); }
+  logout() { this.authService.logout(); }
 }

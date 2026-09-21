@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-ventas',
@@ -25,7 +26,6 @@ export class VentasComponent implements OnInit {
   efectivoRecibido: number = 0;
   mostrarRecibo: string = 'none';
   ventaActual: any = null;
-  historialVentas: any[] = [];
   vistaActual: string = 'nueva';
   tipoCliente: string = 'consumidor_final';
   clienteNombre: string = '';
@@ -34,11 +34,9 @@ export class VentasComponent implements OnInit {
   clienteDireccion: string = '';
   cajero: string = localStorage.getItem('username') || '';
   mostrarSelectorCajero: boolean = false;
-
   fechaHistorial: string = new Date().toISOString().split('T')[0];
   ventasPorFecha: any[] = [];
   fechaBuscada: boolean = false;
-
   mostrarCierre: boolean = false;
   fechaCierre: string = new Date().toISOString().split('T')[0];
   cierreData: any = null;
@@ -51,7 +49,8 @@ export class VentasComponent implements OnInit {
     { valor: 'qr', etiqueta: '📱 QR' },
   ];
 
-  entidadesFinancieras = ['Visa', 'Mastercard', 'American Express', 'Banco Pichincha', 'Banco Guayaquil', 'Banco Pacifico', 'Produbanco', 'Deuna', 'PayPhone', 'Otro'];
+  entidadesFinancieras = ['Visa', 'Mastercard', 'American Express', 'Banco Pichincha',
+    'Banco Guayaquil', 'Banco Pacifico', 'Produbanco', 'Deuna', 'PayPhone', 'Otro'];
 
   constructor(
     private http: HttpClient,
@@ -66,16 +65,13 @@ export class VentasComponent implements OnInit {
 
   cargarCarritoGuardado() {
     const carritoGuardado = localStorage.getItem('carrito_farmasys');
-    if (carritoGuardado) {
-      this.carrito = JSON.parse(carritoGuardado);
-    }
+    if (carritoGuardado) this.carrito = JSON.parse(carritoGuardado);
   }
 
   guardarCarrito() {
     localStorage.setItem('carrito_farmasys', JSON.stringify(this.carrito));
   }
 
-  // Total de items en el carrito para el badge
   get totalItemsCarrito(): number {
     return this.carrito.reduce((sum, item) => sum + item.cantidad, 0);
   }
@@ -83,7 +79,7 @@ export class VentasComponent implements OnInit {
   cargarProductos() {
     const token = localStorage.getItem('token');
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
-    this.http.get<any[]>(`http://localhost:3000/productos?t=${Date.now()}`, { headers }).subscribe({
+    this.http.get<any[]>(`${environment.apiUrl}/productos?t=${Date.now()}`, { headers }).subscribe({
       next: (data) => {
         this.productos = data.filter(p => p.stock > 0);
         this.productosFiltrados = [...this.productos];
@@ -94,14 +90,11 @@ export class VentasComponent implements OnInit {
 
   buscarProducto() {
     const texto = this.busquedaProducto.toLowerCase().trim();
-    if (!texto) {
-      this.productosFiltrados = [...this.productos];
-    } else {
-      this.productosFiltrados = this.productos.filter(p =>
-        p.nombre.toLowerCase().includes(texto) ||
-        p.categoria.toLowerCase().includes(texto)
-      );
-    }
+    this.productosFiltrados = texto
+      ? this.productos.filter(p =>
+          p.nombre.toLowerCase().includes(texto) ||
+          p.categoria.toLowerCase().includes(texto))
+      : [...this.productos];
     this.cdr.detectChanges();
   }
 
@@ -111,28 +104,17 @@ export class VentasComponent implements OnInit {
     const precio = tipo === 'caja' ? parseFloat(producto.precioCaja) : parseFloat(producto.precio);
     const unidades = tipo === 'caja' ? producto.unidadesPorCaja : 1;
     const stockDisponible = Math.floor(producto.stock / unidades);
-
     if (existente) {
       const totalUnidades = (existente.cantidad + 1) * unidades;
-      if (totalUnidades > producto.stock) {
-        alert(`Stock insuficiente. Máximo: ${stockDisponible}`);
-        return;
-      }
+      if (totalUnidades > producto.stock) { alert(`Stock insuficiente. Máximo: ${stockDisponible}`); return; }
       existente.cantidad++;
       existente.subtotal = +(existente.cantidad * precio).toFixed(2);
     } else {
       this.carrito.push({
-        key,
-        productoId: producto.id,
-        nombreProducto: tipo === 'caja'
-          ? `${producto.nombre} (Caja x${producto.unidadesPorCaja})`
-          : producto.nombre,
-        tipo,
-        unidadesPorCaja: unidades,
-        cantidad: 1,
-        precioUnitario: precio,
-        subtotal: precio,
-        stockDisponible
+        key, productoId: producto.id,
+        nombreProducto: tipo === 'caja' ? `${producto.nombre} (Caja x${producto.unidadesPorCaja})` : producto.nombre,
+        tipo, unidadesPorCaja: unidades, cantidad: 1,
+        precioUnitario: precio, subtotal: precio, stockDisponible
       });
     }
     this.guardarCarrito();
@@ -140,14 +122,8 @@ export class VentasComponent implements OnInit {
   }
 
   cambiarCantidad(item: any, cantidad: number) {
-    if (cantidad <= 0) {
-      this.eliminarDelCarrito(item);
-      return;
-    }
-    if (cantidad > item.stockDisponible) {
-      alert(`Stock máximo disponible: ${item.stockDisponible}`);
-      return;
-    }
+    if (cantidad <= 0) { this.eliminarDelCarrito(item); return; }
+    if (cantidad > item.stockDisponible) { alert(`Stock máximo disponible: ${item.stockDisponible}`); return; }
     item.cantidad = cantidad;
     item.subtotal = +(cantidad * item.precioUnitario).toFixed(2);
     this.guardarCarrito();
@@ -170,17 +146,10 @@ export class VentasComponent implements OnInit {
   }
 
   procesarVenta() {
-    if (!this.cajero.trim()) {
-      this.mostrarSelectorCajero = true;
-      return;
-    }
-    if (this.carrito.length === 0) {
-      alert('Agrega productos al carrito primero');
-      return;
-    }
+    if (!this.cajero.trim()) { this.mostrarSelectorCajero = true; return; }
+    if (this.carrito.length === 0) { alert('Agrega productos al carrito primero'); return; }
     if (this.metodoPago === 'efectivo' && this.efectivoRecibido < this.total) {
-      alert('El efectivo recibido es menor al total');
-      return;
+      alert('El efectivo recibido es menor al total'); return;
     }
     const token = localStorage.getItem('token');
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
@@ -200,7 +169,7 @@ export class VentasComponent implements OnInit {
       clienteTelefono: this.clienteTelefono, clienteDireccion: this.clienteDireccion,
       cajero: this.cajero, detalles
     };
-    this.http.post('http://localhost:3000/ventas', venta, { headers }).subscribe({
+    this.http.post(`${environment.apiUrl}/ventas`, venta, { headers }).subscribe({
       next: (res: any) => {
         this.ventaActual = {
           ...res,
@@ -227,7 +196,7 @@ export class VentasComponent implements OnInit {
     if (!this.fechaHistorial) return;
     const token = localStorage.getItem('token');
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
-    this.http.get<any[]>(`http://localhost:3000/ventas/fecha?fecha=${this.fechaHistorial}`, { headers }).subscribe({
+    this.http.get<any[]>(`${environment.apiUrl}/ventas/fecha?fecha=${this.fechaHistorial}`, { headers }).subscribe({
       next: (data) => {
         this.ventasPorFecha = data;
         this.fechaBuscada = true;
@@ -242,12 +211,9 @@ export class VentasComponent implements OnInit {
       const datos = this.ventasPorFecha.map(v => ({
         '#': v.id,
         'Hora': new Date(v.fecha).toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' }),
-        'Total': v.total,
-        'Método Pago': v.metodoPago,
-        'Entidad': v.entidadFinanciera || '-',
+        'Total': v.total, 'Método Pago': v.metodoPago,
         'Cliente': v.tipoCliente === 'con_datos' ? v.clienteNombre : 'Consumidor Final',
-        'Cajero': v.cajero || '-',
-        'Productos': v.detalles?.length || 0
+        'Cajero': v.cajero || '-'
       }));
       const hoja = XLSX.utils.json_to_sheet(datos);
       const libro = XLSX.utils.book_new();
@@ -259,11 +225,8 @@ export class VentasComponent implements OnInit {
   cargarCierre() {
     const token = localStorage.getItem('token');
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
-    this.http.get<any>(`http://localhost:3000/ventas/cierre?fecha=${this.fechaCierre}`, { headers }).subscribe({
-      next: (data) => {
-        this.cierreData = data;
-        this.cdr.detectChanges();
-      }
+    this.http.get<any>(`${environment.apiUrl}/ventas/cierre?fecha=${this.fechaCierre}`, { headers }).subscribe({
+      next: (data) => { this.cierreData = data; this.cdr.detectChanges(); }
     });
   }
 
