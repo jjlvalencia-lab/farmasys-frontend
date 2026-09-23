@@ -1,184 +1,276 @@
-<div class="dashboard">
-  <nav class="navbar">
-  <div class="nav-brand">🏥 FarmaSys</div>
-  <div class="nav-links">
-    <button (click)="irProductos()" class="btn-nav">📦 {{ rol === 'admin' ? 'Productos' : 'Ver Inventario' }}</button>
-    <button (click)="irVentas()" class="btn-nav">🛒 Ventas</button>
-    <button (click)="irPedidos()" class="btn-nav">📋 Pedidos Online</button>
-    <button (click)="logout()" class="btn-logout">Cerrar Sesión</button>
-  </div>
-</nav>
+<div class="dashboard-layout">
 
-  <div class="content">
-    <h1>Panel de Control</h1>
-
-    <!-- TARJETAS RESUMEN -->
-    <div class="cards">
-      <div class="card">
-        <h3>Total Productos</h3>
-        <p class="number">{{ totalProductos }}</p>
+  <!-- SIDEBAR -->
+  <aside class="sidebar" [class.collapsed]="sidebarCollapsed">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="logo-icon">
+          <svg width="20" height="20" viewBox="0 0 26 26" fill="none">
+            <rect x="11" y="2" width="4" height="22" rx="2" fill="#fff"/>
+            <rect x="2" y="11" width="22" height="4" rx="2" fill="#fff"/>
+            <circle cx="13" cy="13" r="4" fill="#9FE1CB"/>
+          </svg>
+        </div>
+        <span class="sidebar-logo-text" *ngIf="!sidebarCollapsed">
+          Farma<span style="color:#9FE1CB">Sys</span>
+        </span>
       </div>
-      <div class="card warning">
-        <h3>Stock Bajo</h3>
-        <p class="number">{{ stockBajo }}</p>
-      </div>
-      <div class="card danger">
-        <h3>Sobrestock</h3>
-        <p class="number">{{ sobrestock }}</p>
-      </div>
-      <div class="card alert">
-        <h3>Por Vencer</h3>
-        <p class="number">{{ alertasVencimiento.length }}</p>
-      </div>
-      <div class="card ventas">
-        <h3>Total Vendido</h3>
-        <p class="number">${{ totalVentas.toFixed(2) }}</p>
-      </div>
+      <button class="sidebar-toggle" (click)="sidebarCollapsed = !sidebarCollapsed">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
     </div>
 
-    <!-- VENTAS 7 DÍAS COMPACTO -->
-    <div class="ventas-semana-container">
-      <div class="ventas-semana-header">
-        <h2>📈 Ventas — Últimos 7 días</h2>
-        <span class="total-semana">${{ ultimos7Dias.reduce(sumarNumeros, 0).toFixed(2) }}</span>
-      </div>
-      <div class="mini-barras">
-        <div class="mini-barra-item" *ngFor="let dia of ultimos7Dias">
-          <div class="mini-barra-wrap">
-            <div class="mini-barra-fill" [style.height.%]="dia.porcentaje" [title]="'$' + dia.total"></div>
-          </div>
-          <span class="mini-barra-label">{{ dia.label }}</span>
-          <span class="mini-barra-monto">${{ dia.total }}</span>
-        </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label" *ngIf="!sidebarCollapsed">Menú principal</div>
+
+      <a class="nav-item active" title="Resumen">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        <span *ngIf="!sidebarCollapsed">Resumen</span>
+      </a>
+
+      <a class="nav-item" (click)="irProductos()" title="Inventario">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+        <span *ngIf="!sidebarCollapsed">Inventario</span>
+        <span class="nav-badge" *ngIf="!sidebarCollapsed && stockBajo > 0">{{ stockBajo }}</span>
+      </a>
+
+      <a class="nav-item" (click)="irVentas()" title="Ventas">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        <span *ngIf="!sidebarCollapsed">Ventas</span>
+      </a>
+
+      <a class="nav-item" (click)="irPedidos()" title="Pedidos Online">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10,9 9,9 8,9"/></svg>
+        <span *ngIf="!sidebarCollapsed">Pedidos Online</span>
+      </a>
+
+      <div class="nav-divider"></div>
+      <div class="nav-section-label" *ngIf="!sidebarCollapsed">Cuenta</div>
+
+      <a class="nav-item nav-logout" (click)="logout()" title="Cerrar sesión">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span *ngIf="!sidebarCollapsed">Cerrar sesión</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-user" *ngIf="!sidebarCollapsed">
+      <div class="user-avatar">{{ (username || 'A').charAt(0).toUpperCase() }}</div>
+      <div class="user-info">
+        <strong>{{ username || 'Admin' }}</strong>
+        <span>{{ rol === 'admin' ? 'Administrador' : 'Empleado' }}</span>
       </div>
     </div>
+  </aside>
 
-    <!-- ANALISIS DE INVENTARIO -->
-    <div class="analisis-container" *ngIf="analisis && rol === 'admin'">
-      <h2>📊 Analisis de Inventario</h2>
-      <div class="analisis-cards">
-        <div class="analisis-card invertido">
-          <h4>💰 Total Invertido</h4>
-          <p>${{ analisis.totalInvertido }}</p>
-          <small>Costo total del inventario actual</small>
-        </div>
-        <div class="analisis-card potencial">
-          <h4>📈 Venta Potencial</h4>
-          <p>${{ analisis.valorVentaPotencial }}</p>
-          <small>Si se vende todo el inventario</small>
-        </div>
-        <div class="analisis-card ganancia">
-          <h4>✅ Ganancia Estimada</h4>
-          <p>${{ analisis.gananciaEstimada }}</p>
-          <small>Margen: {{ analisis.margenPromedio }}</small>
-        </div>
-        <div class="analisis-card sin-movimiento">
-          <h4>⚠️ Sin Movimiento</h4>
-          <p>{{ analisis.productosSinMovimiento }}</p>
-          <small>Productos sin vender en 30+ dias</small>
-        </div>
-        <div class="analisis-card agotado">
-          <h4>❌ Agotados</h4>
-          <p>{{ analisis.productosAgotados }}</p>
-          <small>Productos con stock 0</small>
-        </div>
-        <div class="analisis-card promo">
-          <h4>🏷️ En Promocion</h4>
-          <p>{{ analisis.enPromocion }}</p>
-          <small>Productos con descuento activo</small>
-        </div>
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <h1 class="topbar-title">Buenos días, {{ username || 'Admin' }} 👋</h1>
+        <p class="topbar-subtitle">{{ fechaHoy }}</p>
       </div>
-    </div>
-
-    <!-- ROTACION DE PRODUCTOS -->
-    <div class="rotacion-container" *ngIf="rol === 'admin'">
-      <div class="rotacion-header">
-        <h2>🔄 Rotacion de Productos</h2>
-        <button (click)="mostrarRotacion = !mostrarRotacion" class="btn-toggle">
-          {{ mostrarRotacion ? 'Ocultar' : 'Ver detalle' }}
+      <div class="topbar-right">
+        <div class="alert-chip" *ngIf="alertasVencimiento.length > 0">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          {{ alertasVencimiento.length }} alertas
+        </div>
+        <button class="btn-nueva-venta" (click)="irVentas()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nueva venta
         </button>
       </div>
-      <div *ngIf="mostrarRotacion">
-        <table>
-          <thead>
-            <tr>
-              <th>Producto</th>
-              <th>Categoria</th>
-              <th>Stock</th>
-              <th>Total Vendido</th>
-              <th>Ingreso Generado</th>
-              <th>Dias en Inventario</th>
-              <th>Velocidad Venta</th>
-              <th>Estado</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let r of rotacion">
-              <td>{{ r.nombre }}</td>
-              <td><span class="badge">{{ r.categoria }}</span></td>
-              <td>{{ r.stock }}</td>
-              <td>{{ r.totalVendido }} und</td>
-              <td>${{ r.ingresoGenerado }}</td>
-              <td>{{ r.diasEnInventario }} dias</td>
-              <td>{{ r.velocidadVenta }} und/dia</td>
-              <td>
-                <span class="estado-badge" [class]="'estado-' + r.estado">
-                  {{ r.estado === 'activo' ? '✅ Activo' : r.estado === 'sin_movimiento' ? '⚠️ Sin movimiento' : '❌ Agotado' }}
-                </span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+    </header>
 
-    <!-- ALERTAS DE VENCIMIENTO -->
-    <div class="alertas-container" *ngIf="alertasVencimiento.length > 0">
-      <h2>⚠️ Alertas de Vencimiento</h2>
-      <div class="alertas-list">
-        <div class="alerta-item" *ngFor="let a of alertasVencimiento" [class]="'alerta-' + a.nivel">
-          <div class="alerta-info">
-            <strong>{{ a.nombre }}</strong>
-            <span>Lote: {{ a.lote }} | Categoria: {{ a.categoria }}</span>
+    <div class="content-body">
+
+      <!-- TARJETAS MÉTRICAS -->
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-icon teal">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
           </div>
-          <div class="alerta-dias">
-            <span class="dias-numero">{{ a.diasRestantes }}</span>
-            <span class="dias-texto">dias</span>
+          <div class="metric-info">
+            <span class="metric-label">Total productos</span>
+            <span class="metric-value">{{ totalProductos }}</span>
+          </div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-icon amber">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+          </div>
+          <div class="metric-info">
+            <span class="metric-label">Stock bajo</span>
+            <span class="metric-value amber">{{ stockBajo }}</span>
+          </div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-icon red">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          </div>
+          <div class="metric-info">
+            <span class="metric-label">Por vencer</span>
+            <span class="metric-value red">{{ alertasVencimiento.length }}</span>
+          </div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-icon blue">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
+          <div class="metric-info">
+            <span class="metric-label">Total vendido</span>
+            <span class="metric-value blue">${{ totalVentas.toFixed(2) }}</span>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- TABLA DE INVENTARIO -->
-    <div class="table-container">
-      <h2>Productos en Inventario</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Nombre</th>
-            <th>Categoria</th>
-            <th>Stock</th>
-            <th>Precio</th>
-            <th>Lote</th>
-            <th>Caducidad</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let p of productos">
-            <td>{{ p.nombre }}</td>
-            <td><span class="badge">{{ p.categoria }}</span></td>
-            <td [class.low]="p.stock < (p.stockMinimo || 50)">{{ p.stock }}</td>
-            <td>
-              <span *ngIf="p.enPromocion" class="precio-promo">${{ (p.precio * (1 - p.descuento/100)).toFixed(2) }}</span>
-              <span [class.tachado]="p.enPromocion">${{ p.precio }}</span>
-            </td>
-            <td>{{ p.lote }}</td>
-            <td>{{ p.fechaCaducidad }}</td>
-          </tr>
-        </tbody>
-      </table>
-      <p *ngIf="productos.length === 0">No hay productos aun.</p>
-    </div>
+      <!-- VENTAS 7 DÍAS + ANÁLISIS -->
+      <div class="row-2col">
 
-  </div>
+        <!-- VENTAS 7 DÍAS -->
+        <div class="card">
+          <div class="card-header">
+            <h2>Ventas últimos 7 días</h2>
+            <span class="total-badge">${{ ultimos7Dias.reduce(sumarNumeros, 0).toFixed(2) }}</span>
+          </div>
+          <div class="mini-barras">
+            <div class="mini-barra-item" *ngFor="let dia of ultimos7Dias">
+              <div class="mini-barra-wrap">
+                <div class="mini-barra-fill" [style.height.%]="dia.porcentaje"></div>
+              </div>
+              <span class="mini-barra-label">{{ dia.label }}</span>
+              <span class="mini-barra-monto">${{ dia.total }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ANÁLISIS INVENTARIO -->
+        <div class="card" *ngIf="analisis && rol === 'admin'">
+          <div class="card-header">
+            <h2>Análisis de inventario</h2>
+          </div>
+          <div class="analisis-list">
+            <div class="analisis-row">
+              <span class="analisis-label">💰 Total invertido</span>
+              <span class="analisis-value">${{ analisis.totalInvertido }}</span>
+            </div>
+            <div class="analisis-row">
+              <span class="analisis-label">📈 Venta potencial</span>
+              <span class="analisis-value teal">${{ analisis.valorVentaPotencial }}</span>
+            </div>
+            <div class="analisis-row">
+              <span class="analisis-label">✅ Ganancia estimada</span>
+              <span class="analisis-value green">${{ analisis.gananciaEstimada }}</span>
+            </div>
+            <div class="analisis-row">
+              <span class="analisis-label">⚠️ Sin movimiento</span>
+              <span class="analisis-value amber">{{ analisis.productosSinMovimiento }}</span>
+            </div>
+            <div class="analisis-row">
+              <span class="analisis-label">❌ Agotados</span>
+              <span class="analisis-value red">{{ analisis.productosAgotados }}</span>
+            </div>
+            <div class="analisis-row">
+              <span class="analisis-label">🏷️ En promoción</span>
+              <span class="analisis-value">{{ analisis.enPromocion }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ALERTAS DE VENCIMIENTO -->
+      <div class="card" *ngIf="alertasVencimiento.length > 0">
+        <div class="card-header">
+          <h2>⚠️ Alertas de vencimiento</h2>
+        </div>
+        <div class="alertas-list">
+          <div class="alerta-item" *ngFor="let a of alertasVencimiento" [class]="'alerta-' + a.nivel">
+            <div class="alerta-info">
+              <strong>{{ a.nombre }}</strong>
+              <span>Lote: {{ a.lote }} — {{ a.categoria }}</span>
+            </div>
+            <div class="alerta-dias">
+              <span class="dias-num">{{ a.diasRestantes }}</span>
+              <span class="dias-txt">días</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROTACIÓN -->
+      <div class="card" *ngIf="rol === 'admin'">
+        <div class="card-header">
+          <h2>🔄 Rotación de productos</h2>
+          <button class="btn-toggle" (click)="mostrarRotacion = !mostrarRotacion">
+            {{ mostrarRotacion ? 'Ocultar' : 'Ver detalle' }}
+          </button>
+        </div>
+        <div class="rotacion-table" *ngIf="mostrarRotacion">
+          <table>
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>Categoría</th>
+                <th>Stock</th>
+                <th>Vendido</th>
+                <th>Ingreso</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let r of rotacion">
+                <td>{{ r.nombre }}</td>
+                <td><span class="badge">{{ r.categoria }}</span></td>
+                <td>{{ r.stock }}</td>
+                <td>{{ r.totalVendido }} und</td>
+                <td>${{ r.ingresoGenerado }}</td>
+                <td>
+                  <span class="estado-badge" [class]="'estado-' + r.estado">
+                    {{ r.estado === 'activo' ? '✅ Activo' : r.estado === 'sin_movimiento' ? '⚠️ Sin mov.' : '❌ Agotado' }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- INVENTARIO -->
+      <div class="card">
+        <div class="card-header">
+          <h2>Productos en inventario</h2>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Categoría</th>
+                <th>Stock</th>
+                <th>Precio</th>
+                <th>Caducidad</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let p of productos">
+                <td>{{ p.nombre }}</td>
+                <td><span class="badge">{{ p.categoria }}</span></td>
+                <td [class.low]="p.stock < (p.stockMinimo || 50)">{{ p.stock }}</td>
+                <td>
+                  <span *ngIf="p.enPromocion" class="precio-promo">${{ (p.precio * (1 - p.descuento/100)).toFixed(2) }}</span>
+                  <span [class.tachado]="p.enPromocion">${{ p.precio }}</span>
+                </td>
+                <td>{{ p.fechaCaducidad }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p *ngIf="productos.length === 0" class="empty-msg">No hay productos aún.</p>
+      </div>
+
+    </div>
+  </main>
 </div>

@@ -19,11 +19,14 @@ export class DashboardComponent implements OnInit {
   sobrestock = 0;
   alertasVencimiento: any[] = [];
   rol: string = '';
+  username: string = '';
   totalVentas = 0;
   analisis: any = null;
   rotacion: any[] = [];
   mostrarRotacion = false;
   ultimos7Dias: any[] = [];
+  sidebarCollapsed = false;
+  fechaHoy: string = '';
 
   constructor(
     private http: HttpClient,
@@ -34,6 +37,12 @@ export class DashboardComponent implements OnInit {
 
   ngOnInit() {
     this.rol = localStorage.getItem('rol') || 'admin';
+    this.username = localStorage.getItem('username') || 'Admin';
+    this.fechaHoy = new Date().toLocaleDateString('es', {
+      weekday: 'long', year: 'numeric',
+      month: 'long', day: 'numeric'
+    });
+
     const token = localStorage.getItem('token');
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
 
@@ -59,18 +68,12 @@ export class DashboardComponent implements OnInit {
     });
 
     this.http.get<any>(`${environment.apiUrl}/productos/analisis?t=${Date.now()}`, { headers }).subscribe({
-      next: (data) => {
-        this.analisis = data;
-        this.cdr.detectChanges();
-      },
+      next: (data) => { this.analisis = data; this.cdr.detectChanges(); },
       error: (err) => console.error('Error analisis:', err)
     });
 
     this.http.get<any[]>(`${environment.apiUrl}/productos/rotacion?t=${Date.now()}`, { headers }).subscribe({
-      next: (data) => {
-        this.rotacion = data;
-        this.cdr.detectChanges();
-      },
+      next: (data) => { this.rotacion = data; this.cdr.detectChanges(); },
       error: (err) => console.error('Error rotacion:', err)
     });
   }
